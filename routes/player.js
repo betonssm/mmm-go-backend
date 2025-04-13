@@ -19,6 +19,7 @@ router.get("/:telegramId", async (req, res) => {
 
     if (!player) {
       const refId = req.query.ref;
+
       player = new Player({
         telegramId: req.params.telegramId,
         playerName: "Новый игрок",
@@ -43,7 +44,7 @@ router.get("/:telegramId", async (req, res) => {
             referrer.referrals += 1;
             referrer.balance += 5000; // 💸 Бонус за реферала
             await referrer.save();
-            console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}. Начислено +5000 мавродиков.`);
+            console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}`);
           }
         } catch (err) {
           console.error("❌ Ошибка при начислении бонуса за реферала:", err);
@@ -51,53 +52,7 @@ router.get("/:telegramId", async (req, res) => {
       }
     }
 
-    res.json(player);
-  } catch (err) {
-    console.error("Ошибка при получении игрока:", err);
-    res.status(500).json({ error: "Ошибка сервера" });
-  }
-});
-
-// ⬇️ POST — обновление игрока и SR рейтинг
-router.post("/", async (req, res) => {
-  const {
-    telegramId,
-    playerName,
-    balance,
-    level,
-    isBoostActive,
-    isInvestor,
-    referrals,
-    totalTaps,
-    adsWatched,
-    boostCooldownUntil
-  } = req.body;
-
-  try {
-    const srRating = Math.floor(
-      Math.log2((referrals || 0) + 1) * 40 +
-      Math.log2((totalTaps || 0) + 1) * 25 +
-      Math.log2((adsWatched || 0) + 1) * 35
-    );
-
-    const updated = await Player.findOneAndUpdate(
-      { telegramId },
-      {
-        telegramId,
-        playerName,
-        balance,
-        level,
-        isBoostActive,
-        isInvestor,
-        referrals,
-        totalTaps,
-        adsWatched,
-        srRating,
-        boostCooldownUntil: boostCooldownUntil || null,
-      },
-      { upsert: true, new: true }
-    );
-
+    // ✅ Отправляем данные игрока в любом случае
     res.json(player);
 
   } catch (err) {
