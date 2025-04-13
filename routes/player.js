@@ -19,6 +19,7 @@ router.get("/:telegramId", async (req, res) => {
 
     if (!player) {
       const refId = req.query.ref;
+
       player = new Player({
         telegramId: req.params.telegramId,
         playerName: "Новый игрок",
@@ -48,6 +49,7 @@ router.get("/:telegramId", async (req, res) => {
           console.error("❌ Ошибка при начислении бонуса за реферала:", err);
         }
       }
+    }
 
     res.json(player);
   } catch (err) {
