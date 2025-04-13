@@ -17,6 +17,8 @@ router.get("/:telegramId", async (req, res) => {
         isInvestor: false,
         srRating: 0,
         referrals: 0,
+        totalTaps: 0,
+        adsWatched: 0,
       });
 
       await player.save();
@@ -30,11 +32,28 @@ router.get("/:telegramId", async (req, res) => {
   }
 });
 
-// ⬇️ POST — обновление игрока
+// ⬇️ POST — обновление игрока и расчёт SR рейтинга
 router.post("/", async (req, res) => {
-  const { telegramId, playerName, balance, level, isBoostActive, isInvestor, srRating, referrals } = req.body;
+  const {
+    telegramId,
+    playerName,
+    balance,
+    level,
+    isBoostActive,
+    isInvestor,
+    referrals,
+    totalTaps,
+    adsWatched
+  } = req.body;
 
   try {
+    // 💡 Расчёт логарифмического SR-рейтинга
+    const srRating = Math.floor(
+      Math.log2((referrals || 0) + 1) * 40 +
+      Math.log2((totalTaps || 0) + 1) * 25 +
+      Math.log2((adsWatched || 0) + 1) * 35
+    );
+
     const updated = await Player.findOneAndUpdate(
       { telegramId },
       {
@@ -44,13 +63,17 @@ router.post("/", async (req, res) => {
         level,
         isBoostActive,
         isInvestor,
-        srRating,
         referrals,
+        totalTaps,
+        adsWatched,
+        srRating
       },
       { upsert: true, new: true }
     );
+
     res.json(updated);
   } catch (err) {
+    console.error("Ошибка сохранения игрока:", err);
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
   }
 });

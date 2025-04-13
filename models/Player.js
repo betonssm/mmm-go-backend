@@ -9,6 +9,9 @@ const playerSchema = new mongoose.Schema({
   isInvestor: { type: Boolean, default: false },
   srRating: { type: Number, default: 0 },
   referrals: { type: Number, default: 0 },
+
+  totalTaps: { type: Number, default: 0 },      // 🖱 активность
+  adsWatched: { type: Number, default: 0 },     // 📺 задания/реклама
 }, { timestamps: true });
 
 module.exports = mongoose.model("Player", playerSchema);
