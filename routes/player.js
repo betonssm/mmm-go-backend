@@ -39,7 +39,10 @@ router.get("/:telegramId", async (req, res) => {
         const referrer = await Player.findOne({ telegramId: refId });
         if (referrer) {
           referrer.referrals += 1;
+          referrer.balance += 5000; // 💸 Бонус за реферала
           await referrer.save();
+          console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}. Начислено +5000 мавродиков.`);
+        }
           console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}`);
         }
       }
