@@ -36,17 +36,18 @@ router.get("/:telegramId", async (req, res) => {
       console.log("🆕 Новый игрок создан:", player);
 
       if (refId && refId !== req.params.telegramId) {
-        const referrer = await Player.findOne({ telegramId: refId });
-        if (referrer) {
-          referrer.referrals += 1;
-          referrer.balance += 5000; // 💸 Бонус за реферала
-          await referrer.save();
-          console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}. Начислено +5000 мавродиков.`);
-        }
-          console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}`);
+        try {
+          const referrer = await Player.findOne({ telegramId: refId });
+          if (referrer) {
+            referrer.referrals += 1;
+            referrer.balance += 5000; // 💸 Бонус за реферала
+            await referrer.save();
+            console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}. Начислено +5000 мавродиков.`);
+          }
+        } catch (err) {
+          console.error("❌ Ошибка при начислении бонуса за реферала:", err);
         }
       }
-    }
 
     res.json(player);
   } catch (err) {
