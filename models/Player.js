@@ -12,6 +12,7 @@ const playerSchema = new mongoose.Schema({
 
   totalTaps: { type: Number, default: 0 },      // 🖱 активность
   adsWatched: { type: Number, default: 0 },     // 📺 задания/реклама
+  boostCooldownUntil: { type: Date, default: null }, // ⏱ перезарядка буста
 }, { timestamps: true });
 
 module.exports = mongoose.model("Player", playerSchema);

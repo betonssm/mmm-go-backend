@@ -19,7 +19,6 @@ router.get("/:telegramId", async (req, res) => {
 
     if (!player) {
       const refId = req.query.ref;
-
       player = new Player({
         telegramId: req.params.telegramId,
         playerName: "Новый игрок",
@@ -31,6 +30,7 @@ router.get("/:telegramId", async (req, res) => {
         referrals: 0,
         totalTaps: 0,
         adsWatched: 0,
+        boostCooldownUntil: null,
       });
 
       await player.save();
@@ -69,7 +69,8 @@ router.post("/", async (req, res) => {
     isInvestor,
     referrals,
     totalTaps,
-    adsWatched
+    adsWatched,
+    boostCooldownUntil
   } = req.body;
 
   try {
@@ -91,7 +92,8 @@ router.post("/", async (req, res) => {
         referrals,
         totalTaps,
         adsWatched,
-        srRating
+        srRating,
+        boostCooldownUntil: boostCooldownUntil || null,
       },
       { upsert: true, new: true }
     );
