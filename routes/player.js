@@ -2,12 +2,15 @@ const express = require("express");
 const router = express.Router();
 const Player = require("../models/Player");
 
-// ⬇️ GET с авто-созданием
+// ⬇️ GET с авто-созданием и учётом реферала
 router.get("/:telegramId", async (req, res) => {
   try {
     let player = await Player.findOne({ telegramId: req.params.telegramId });
 
     if (!player) {
+      // Новый игрок
+      const refId = req.query.ref;
+
       player = new Player({
         telegramId: req.params.telegramId,
         playerName: "Новый игрок",
@@ -23,6 +26,16 @@ router.get("/:telegramId", async (req, res) => {
 
       await player.save();
       console.log("🆕 Новый игрок создан:", player);
+
+      // Учёт реферала
+      if (refId && refId !== req.params.telegramId) {
+        const referrer = await Player.findOne({ telegramId: refId });
+        if (referrer) {
+          referrer.referrals += 1;
+          await referrer.save();
+          console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}`);
+        }
+      }
     }
 
     res.json(player);
