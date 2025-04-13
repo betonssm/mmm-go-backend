@@ -60,5 +60,46 @@ router.get("/:telegramId", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
+// ⬇️ POST — обновление игрока и SR рейтинг
+router.post("/", async (req, res) => {
+  const {
+    telegramId,
+    playerName,
+    balance,
+    level,
+    isBoostActive,
+    isInvestor,
+    referrals,
+    totalTaps,
+    adsWatched,
+    srRating,
+    boostCooldownUntil
+  } = req.body;
+
+  try {
+    const updated = await Player.findOneAndUpdate(
+      { telegramId },
+      {
+        telegramId,
+        playerName,
+        balance,
+        level,
+        isBoostActive,
+        isInvestor,
+        referrals,
+        totalTaps,
+        adsWatched,
+        srRating,
+        boostCooldownUntil: boostCooldownUntil || null
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json(updated);
+  } catch (err) {
+    console.error("❌ Ошибка сохранения игрока:", err);
+    res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
+  }
+});
 
 module.exports = router;
