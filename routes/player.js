@@ -98,10 +98,11 @@ router.post("/", async (req, res) => {
       { upsert: true, new: true }
     );
 
-    res.json(updated);
+    res.json(player);
+
   } catch (err) {
-    console.error("Ошибка сохранения игрока:", err);
-    res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
+    console.error("Ошибка при получении игрока:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 
