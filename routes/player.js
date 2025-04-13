@@ -90,5 +90,14 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
   }
 });
+// GET /player/count — общее количество игроков
+router.get("/count", async (req, res) => {
+  try {
+    const count = await Player.countDocuments();
+    res.json({ totalPlayers: count });
+  } catch (err) {
+    res.status(500).json({ error: "Ошибка при получении количества игроков" });
+  }
+});
 
 module.exports = router;
