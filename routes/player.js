@@ -103,6 +103,41 @@ router.post("/", async (req, res) => {
     weeklyMission,
     balanceBonus // 👈 добавили!
   } = req.body;
+  const player = await Player.findOne({ telegramId });
+
+// Защита от повтора ежедневной награды
+if (dailyTasks?.rewardReceived && player?.lastDailyRewardAt) {
+  const now = new Date();
+  const last = new Date(player.lastDailyRewardAt);
+  const sameDay = now.toDateString() === last.toDateString();
+
+  if (sameDay) {
+    return res.status(400).json({ error: "Награда за сегодня уже получена" });
+  }
+}
+
+// Защита от повтора недельной награды
+if (weeklyMission?.completed && player?.lastWeeklyRewardAt) {
+  const now = new Date();
+  const last = new Date(player.lastWeeklyRewardAt);
+
+  const sameWeek =
+    now.getFullYear() === last.getFullYear() &&
+    getWeekNumber(now) === getWeekNumber(last);
+
+  if (sameWeek) {
+    return res.status(400).json({ error: "Награда за эту неделю уже получена" });
+  }
+}
+
+// Функция для определения номера недели
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
 
   const updateFields = {
     telegramId,
