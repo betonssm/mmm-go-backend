@@ -62,6 +62,7 @@ router.get("/:telegramId", async (req, res) => {
 });
 // ⬇️ POST — обновление игрока и SR рейтинг
 router.post("/", async (req, res) => {
+  console.log("📥 Получены данные задания:", req.body); // ✅ ВСТАВЬ СЮДА
   const {
     telegramId,
     playerName,
