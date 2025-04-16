@@ -15,16 +15,18 @@ const playerSchema = new mongoose.Schema({
   boostCooldownUntil: { type: Date, default: null },
 
   // 🔽 Добавляем сюда:
+  partnerSubscribed: { type: Boolean, default: false },
   dailyTasks: {
-    taps: { type: Number, default: 0 },
-    collected: { type: Boolean, default: false },
+    dailyTaps: { type: Number, default: 0 },
+    dailyTarget: { type: Number, default: 5000 },
+    rewardReceived: { type: Boolean, default: false },
   },
   weeklyMission: {
-    progress: { type: Number, default: 0 },
-    collected: { type: Boolean, default: false },
+    mavrodikGoal: { type: Number, default: 1000000 },
+    current: { type: Number, default: 0 },
+    completed: { type: Boolean, default: false },
   },
-  partnerSubscribed: { type: Boolean, default: false },
-  balanceBonus: { type: Number, default: 0 },
+  balanceBonus: { type: Number, default: 0 } // ⬅️ вот это
 
 }, { timestamps: true });
 
