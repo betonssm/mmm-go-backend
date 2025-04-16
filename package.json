@@ -17,3 +17,6 @@
     "nodemon": "^2.0.22"
   }
 }
+"dependencies": {
+  "node-cron": "^3.0.2"
+}
