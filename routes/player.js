@@ -106,7 +106,6 @@ router.post("/", async (req, res) => {
   const updateFields = {
     telegramId,
     playerName,
-    balance,
     level,
     isBoostActive,
     isInvestor,
@@ -116,6 +115,16 @@ router.post("/", async (req, res) => {
     srRating,
     boostCooldownUntil: boostCooldownUntil || null
   };
+
+  // 👇 Применяем бонус к балансу
+  if (typeof balanceBonus !== "undefined" && balanceBonus > 0) {
+    const player = await Player.findOne({ telegramId });
+    if (player) {
+      updateFields.balance = (player.balance || 0) + balanceBonus;
+    }
+  } else if (typeof balance !== "undefined") {
+    updateFields.balance = balance;
+  }
 
   if (typeof partnerSubscribed !== "undefined") {
     updateFields.partnerSubscribed = partnerSubscribed;
@@ -127,10 +136,6 @@ router.post("/", async (req, res) => {
 
   if (weeklyMission) {
     updateFields.weeklyMission = weeklyMission;
-  }
-
-  if (typeof balanceBonus !== "undefined") {
-    updateFields.balanceBonus = balanceBonus;
   }
 
   try {
