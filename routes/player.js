@@ -51,7 +51,30 @@ router.get("/:telegramId", async (req, res) => {
         }
       }
     }
+// Если нет dailyTasks — создаём базу
+if (!player.dailyTasks) {
+  player.dailyTasks = {
+    dailyTaps: 0,
+    dailyTarget: 5000,
+    rewardReceived: false
+  };
+}
 
+// Аналогично для weeklyMission
+if (!player.weeklyMission) {
+  player.weeklyMission = {
+    mavrodikGoal: 1000000,
+    current: 0,
+    completed: false
+  };
+}
+
+// Подписка на партнёра
+if (typeof player.partnerSubscribed === "undefined") {
+  player.partnerSubscribed = false;
+}
+
+await player.save(); // Сохраняем обновления
     // ✅ Отправляем данные игрока в любом случае
     res.json(player);
 
