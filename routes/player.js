@@ -102,7 +102,8 @@ router.post("/", async (req, res) => {
     // 🔽 Новые поля
     dailyTasks,
     weeklyMission,
-    partnerSubscribed
+    partnerSubscribed,
+    balanceBonus
   } = req.body;
 
   try {
@@ -125,6 +126,7 @@ router.post("/", async (req, res) => {
         ...(dailyTasks && { dailyTasks }),
         ...(weeklyMission && { weeklyMission }),
         ...(typeof partnerSubscribed !== "undefined" && { partnerSubscribed })
+        (typeof balanceBonus !== "undefined" && { balanceBonus })
       },
       { upsert: true, new: true }
     );

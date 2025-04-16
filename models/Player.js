@@ -24,6 +24,7 @@ const playerSchema = new mongoose.Schema({
     collected: { type: Boolean, default: false },
   },
   partnerSubscribed: { type: Boolean, default: false },
+  balanceBonus: { type: Number, default: 0 },
 
 }, { timestamps: true });
 
