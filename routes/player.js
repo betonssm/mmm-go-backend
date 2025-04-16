@@ -85,6 +85,7 @@ await player.save(); // Сохраняем обновления
 });
 // ⬇️ POST — обновление игрока и SR рейтинг
 router.post("/", async (req, res) => {
+  console.log("📥 Получены данные задания (POST):", req.body); 
   const {
     telegramId,
     playerName,
