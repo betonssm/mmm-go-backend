@@ -85,7 +85,6 @@ await player.save(); // Сохраняем обновления
 });
 // ⬇️ POST — обновление игрока и SR рейтинг
 router.post("/", async (req, res) => {
-  console.log("📥 Получены данные задания:", req.body); // ✅ ВСТАВЬ СЮДА
   const {
     telegramId,
     playerName,
@@ -98,36 +97,46 @@ router.post("/", async (req, res) => {
     adsWatched,
     srRating,
     boostCooldownUntil,
-
-    // 🔽 Новые поля
+    partnerSubscribed,
     dailyTasks,
     weeklyMission,
-    partnerSubscribed,
-    balanceBonus
+    balanceBonus // 👈 добавили!
   } = req.body;
+
+  const updateFields = {
+    telegramId,
+    playerName,
+    balance,
+    level,
+    isBoostActive,
+    isInvestor,
+    referrals,
+    totalTaps,
+    adsWatched,
+    srRating,
+    boostCooldownUntil: boostCooldownUntil || null
+  };
+
+  if (typeof partnerSubscribed !== "undefined") {
+    updateFields.partnerSubscribed = partnerSubscribed;
+  }
+
+  if (dailyTasks) {
+    updateFields.dailyTasks = dailyTasks;
+  }
+
+  if (weeklyMission) {
+    updateFields.weeklyMission = weeklyMission;
+  }
+
+  if (typeof balanceBonus !== "undefined") {
+    updateFields.balanceBonus = balanceBonus;
+  }
 
   try {
     const updated = await Player.findOneAndUpdate(
       { telegramId },
-      {
-        telegramId,
-        playerName,
-        balance,
-        level,
-        isBoostActive,
-        isInvestor,
-        referrals,
-        totalTaps,
-        adsWatched,
-        srRating,
-        boostCooldownUntil: boostCooldownUntil || null,
-
-        // 🔽 Сохраняем новые поля
-        ...(dailyTasks && { dailyTasks }),
-        ...(weeklyMission && { weeklyMission }),
-        ...(typeof partnerSubscribed !== "undefined" && { partnerSubscribed })
-        (typeof balanceBonus !== "undefined" && { balanceBonus })
-      },
+      updateFields,
       { upsert: true, new: true }
     );
 
