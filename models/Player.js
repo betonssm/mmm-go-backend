@@ -10,9 +10,21 @@ const playerSchema = new mongoose.Schema({
   srRating: { type: Number, default: 0 },
   referrals: { type: Number, default: 0 },
 
-  totalTaps: { type: Number, default: 0 },      // 🖱 активность
-  adsWatched: { type: Number, default: 0 },     // 📺 задания/реклама
-  boostCooldownUntil: { type: Date, default: null }, // ⏱ перезарядка буста
+  totalTaps: { type: Number, default: 0 },
+  adsWatched: { type: Number, default: 0 },
+  boostCooldownUntil: { type: Date, default: null },
+
+  // 🔽 Добавляем сюда:
+  dailyTasks: {
+    taps: { type: Number, default: 0 },
+    collected: { type: Boolean, default: false },
+  },
+  weeklyMission: {
+    progress: { type: Number, default: 0 },
+    collected: { type: Boolean, default: false },
+  },
+  partnerSubscribed: { type: Boolean, default: false },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Player", playerSchema);

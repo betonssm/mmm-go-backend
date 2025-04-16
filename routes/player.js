@@ -73,7 +73,12 @@ router.post("/", async (req, res) => {
     totalTaps,
     adsWatched,
     srRating,
-    boostCooldownUntil
+    boostCooldownUntil,
+
+    // 🔽 Новые поля
+    dailyTasks,
+    weeklyMission,
+    partnerSubscribed
   } = req.body;
 
   try {
@@ -90,7 +95,12 @@ router.post("/", async (req, res) => {
         totalTaps,
         adsWatched,
         srRating,
-        boostCooldownUntil: boostCooldownUntil || null
+        boostCooldownUntil: boostCooldownUntil || null,
+
+        // 🔽 Сохраняем новые поля
+        ...(dailyTasks && { dailyTasks }),
+        ...(weeklyMission && { weeklyMission }),
+        ...(typeof partnerSubscribed !== "undefined" && { partnerSubscribed })
       },
       { upsert: true, new: true }
     );
