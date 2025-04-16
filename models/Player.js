@@ -26,7 +26,9 @@ const playerSchema = new mongoose.Schema({
     current: { type: Number, default: 0 },
     completed: { type: Boolean, default: false },
   },
-  balanceBonus: { type: Number, default: 0 } // ⬅️ вот это
+  balanceBonus: { type: Number, default: 0 }, // ⬅️ вот это
+  lastDailyRewardAt: { type: Date, default: null },
+  lastWeeklyRewardAt: { type: Date, default: null },
 
 }, { timestamps: true });
 

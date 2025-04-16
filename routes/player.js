@@ -116,6 +116,16 @@ router.post("/", async (req, res) => {
     srRating,
     boostCooldownUntil: boostCooldownUntil || null
   };
+  if (typeof dailyTasks !== "undefined" && dailyTasks.rewardReceived) {
+    updateFields["dailyTasks"] = dailyTasks;
+    updateFields["lastDailyRewardAt"] = new Date(); // сохраняем дату
+    console.log("🕒 Дата ежедневной награды:", updateFields.lastDailyRewardAt);
+  }
+  if (typeof weeklyMission !== "undefined" && weeklyMission.completed) {
+    updateFields["weeklyMission"] = weeklyMission;
+    updateFields["lastWeeklyRewardAt"] = new Date(); // сохраняем дату
+    console.log("📆 Дата недельной награды:", updateFields.lastWeeklyRewardAt);
+  }
 
   // 👇 Применяем бонус к балансу
   if (typeof balanceBonus !== "undefined" && balanceBonus > 0) {
