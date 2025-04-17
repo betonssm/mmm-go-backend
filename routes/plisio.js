@@ -1,28 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const Player = require("../models/Player"); // Убедись, что путь корректный
+const Player = require("../models/Player");
 
 // ✅ Создание платежа
 router.post("/create-payment", async (req, res) => {
   const { telegramId, amount } = req.body;
 
   try {
-    const response = await axios.post("https://plisio.net/api/v1/invoices/new", null, {
-      params: {
-        shop_id: process.env.PLISIO_SHOP_ID,
-        amount,
-        currency: "USD",
-        order_name: "MMM GO Premium",
-        order_number: telegramId,
-        callback_url: "https://mmmgo-backend.onrender.com/plisio/callback",
-        success_url: "https://mmmgo-frontend.onrender.com/payment-success",
-        cancel_url: "https://mmmgo-frontend.onrender.com/payment-failed",
-      },
-      headers: {
-        Authorization: `Bearer ${process.env.PLISIO_API_KEY}`,
-      },
-    });
+    const response = await axios.post(
+      "https://plisio.net/api/v1/invoices/new",
+      null, // Внимание: Plisio требует тело = null (вместо {})
+      {
+        params: {
+          shop_id: process.env.PLISIO_SHOP_ID,         // ✅ Обязательно проверь
+          amount: 10,
+          currency: "USDT",
+          order_name: "MMM GO Premium",
+          order_number: telegramId,                     // будет использоваться в callback
+          source_currency: "USDT",                      // ✅ Plisio требует source_currency!
+          callback_url: "https://mmmgo-backend.onrender.com/plisio/callback",
+          redirect_to: "https://mmmgo-frontend.onrender.com/payment-success", // 🔄 redirect_to вместо success_url/cancel_url
+          cancel_url: "https://mmmgo-frontend.onrender.com/payment-failed"
+        },
+        headers: {
+          Authorization: `Bearer ${process.env.PLISIO_API_KEY}`,
+        },
+      }
+    );
 
     res.json(response.data);
   } catch (err) {
@@ -31,7 +36,7 @@ router.post("/create-payment", async (req, res) => {
   }
 });
 
-// ✅ Обработка callback после успешной оплаты
+// ✅ Обработка callback
 router.post("/callback", async (req, res) => {
   const { order_number, status } = req.body;
 
