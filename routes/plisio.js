@@ -6,31 +6,40 @@ const Player = require("../models/Player");
 
 // POST /plisio/create-payment
 router.post("/create-payment", async (req, res) => {
+  // 1) Логируем входящий запрос
   console.log("→ [plisio] /create-payment BODY:", req.body);
   const { telegramId, amount } = req.body;
 
+  // 2) Формируем query-параметры для Plisio
   const params = {
-    shop_id:               process.env.PLISIO_SHOP_ID,
-    source_currency:       "USDT",
-    source_amount:         amount || 10,
-    currency:              "USDT",
-    order_name:            "MMM GO Premium",
-    order_number:          telegramId,
+    api_key:               process.env.PLISIO_API_KEY,             // ваш секретный ключ
+    shop_id:               process.env.PLISIO_SHOP_ID,             // ваш ID магазина
+    order_name:            "MMM GO Premium",                       // описание заказа
+    order_number:          telegramId,                              // будем использовать Telegram ID
+    source_currency:       "USD",                                   // сумма в долларах
+    source_amount:         amount || 10,                            // default 10 USD
     callback_url:          "https://mmmgo-backend.onrender.com/plisio/callback",
     success_invoice_url:   "https://mmmgo-frontend.onrender.com/payment-success",
-    fail_invoice_url:      "https://mmmgo-frontend.onrender.com/plisio/cancel", 
-    api_key:               process.env.PLISIO_API_KEY,
+    fail_invoice_url:      "https://mmmgo-frontend.onrender.com/payment-failed",
+    allowed_psys_cids:     "USDT,ETH,BTC",                          // разрешённые криптовалюты
   };
 
   try {
-    const response = await axios.get(
+    // 3) Делаем GET‑запрос к Plisio API
+    const { data } = await axios.get(
       "https://api.plisio.net/api/v1/invoices/new",
       { params }
     );
-    return res.json(response.data);
+
+    // 4) Отдаём клиенту JSON с invoice_url и прочей инфой
+    return res.json(data);
+
   } catch (err) {
+    // 5) Логируем, что вернул Plisio и собственное сообщение
     console.error("❌ [plisio] error.response.data:", err.response?.data);
     console.error("❌ [plisio] err.message         :", err.message);
+
+    // 6) Отправляем клиенту ответ с кодом ошибки и деталями
     return res
       .status(err.response?.status || 500)
       .json({ error: "Ошибка создания платежа", details: err.response?.data });
