@@ -50,5 +50,6 @@ router.post("/callback", async (req, res) => {
 
   res.sendStatus(200);
 });
-
+console.log("🔐 Shop ID:", process.env.PLISIO_SHOP_ID);
+console.log("🔐 API Key:", process.env.PLISIO_API_KEY);
 module.exports = router;
