@@ -40,6 +40,7 @@ router.post("/create-payment", async (req, res) => {
 });
 // ✅ Обработка callback
 router.post("/callback", async (req, res) => {
+  console.log("→ [plisio] /create-payment BODY:", req.body);
   const { order_number, status } = req.body;
 
   if (status === "completed") {
