@@ -2,12 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const plisioRoutes = require("./routes/plisio");
-app.use("/plisio", plisioRoutes);
-
 const app = express();
 app.use(cors());
 app.use(express.json());
+const plisioRoutes = require("./routes/plisio");
+app.use("/plisio", plisioRoutes);
+
 
 const playerRoutes = require("./routes/player");
 app.use("/player", playerRoutes);
