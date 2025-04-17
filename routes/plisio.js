@@ -16,8 +16,8 @@ router.post("/create-payment", async (req, res) => {
         order_name: "MMM GO Premium",
         order_number: telegramId,
         callback_url: "https://mmmgo-backend.onrender.com/plisio/callback",
-        success_url: "https://mmmgo-game.web.app/PaymentSuccess",
-        cancel_url: "https://mmmgo-game.web.app/PaymentFailed",
+        success_url: "https://mmmgo-frontend.onrender.com/PaymentSuccess",
+        cancel_url: "https://mmmgo-frontend.onrender.com/PaymentFailed",
       },
       headers: {
         Authorization: `Bearer ${process.env.PLISIO_API_KEY}`,
