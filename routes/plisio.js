@@ -5,6 +5,7 @@ const qs = require("qs"); // <== ОБЯЗАТЕЛЬНО для сериализ�
 const Player = require("../models/Player");
 
 router.post("/create-payment", async (req, res) => {
+  console.log("→ [plisio] /create-payment BODY:", req.body);
   const { telegramId, amount } = req.body;
 
   try {
@@ -34,13 +35,15 @@ router.post("/create-payment", async (req, res) => {
 
     res.json(response.data);
   } catch (err) {
-    console.error("❌ Ошибка создания платежа:", err.response?.data || err.message);
-    res.status(500).json({ error: "Ошибка создания платежа" });
-  }
+    -    console.error("❌ Ошибка создания платежа:", err.response?.data || err.message);
+    +    console.error("❌ [plisio] error.response.data:", err.response?.data);
+    +    console.error("❌ [plisio] err.message         :", err.message);
+        res.status(500).json({ error: "Ошибка создания платежа" });
+      }
 });
 // ✅ Обработка callback
 router.post("/callback", async (req, res) => {
-  console.log("→ [plisio] /create-payment BODY:", req.body);
+  console.log("→ [plisio] /callback BODY:", req.body);
   const { order_number, status } = req.body;
 
   if (status === "completed") {
