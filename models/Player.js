@@ -23,6 +23,7 @@ const playerSchema = new mongoose.Schema({
   premiumSince:     { type: Date,    default: null },
   // Дата истечения текущей подписки
   premiumExpires:   { type: Date,    default: null },
+  srActiveSince:   { type: Date,    default: null },
 
   // ---------------------------------------------
   // SR-рейтинговые очки начисляются только в период действия премиума

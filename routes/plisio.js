@@ -50,6 +50,8 @@ router.post("/callback", async (req, res) => {
     expires.setDate(expires.getDate() + 30); // подписка на 30 дней
      // 60% от уплаченного доната идёт в призовой пул
 // USDT: просто 60% от заплаченной суммы
+// 2) Дата старта SR — 1‑е число следующего месяца   
+const srStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   const usdtIncrement = source_amount * 0.6;
   await Fund.findOneAndUpdate({}, { $inc: { total: usdtIncrement } });
   console.log(`💰 Пул увеличен на ${usdtIncrement.toFixed(2)} USDT`);
@@ -60,15 +62,14 @@ router.post("/callback", async (req, res) => {
         isInvestor:     true,
         premiumSince:   now,
         premiumExpires: expires,
+        srActiveSince: srStart,
         $inc: { balance: 50000 },
         srRating:       0  // сброс рейтинга при продлении
       },
       { upsert: true, new: true }
     );
 
-    console.log(
-      `✅ ${telegramId} получил премиум до ${expires.toISOString()}, новый баланс=${player.balance}`
-    );
+    console.log(`✅ ${telegramId} получил премиум до ${expires.toISOString()}, SR начнётся ${srStart.toISOString()}, баланс=${player.balance}`);
   }
 
   res.sendStatus(200);

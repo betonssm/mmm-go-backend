@@ -124,12 +124,11 @@ router.post("/", async (req, res) => {
 
     // SR-рейтинги только при активной подписке
     if (typeof srRating !== "undefined") {
-      if (player.isInvestor && player.premiumExpires && now < new Date(player.premiumExpires)) {
-        updateFields.srRating = srRating;
-      } else {
-        updateFields.srRating = 0;
-      }
-    }
+         const active = player.isInvestor
+           && player.premiumExpires && now < player.premiumExpires
+           && player.srActiveSince && now >= player.srActiveSince;
+         updateFields.srRating = active ? srRating : 0;
+       }
 
     // Сборка запроса: $set и $inc
     const updateQuery = {};

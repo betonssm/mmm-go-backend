@@ -85,7 +85,11 @@ cron.schedule("10 0 1 * *", async () => {
   try {
     const premiumPlayers = await Player.find({
       isInvestor: true,
-      premiumSince: { $gte: firstDayLastMonth, $lt: firstDayThisMonth }
+       // SR‑рейтинги у этих игроков уже были активны с 1‑го числа прошлого месяца
+  srActiveSince: { $lte: firstDayLastMonth },
+  // А подписка началась до конца прошлого месяца
+ premiumSince:  { $lt: firstDayThisMonth }
+  
     }).sort({ srRating: -1 });
 
     if (!premiumPlayers.length) {
