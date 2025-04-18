@@ -40,14 +40,20 @@ router.get("/:telegramId", async (req, res) => {
       if (refId && refId !== req.params.telegramId) {
         const referrer = await Player.findOne({ telegramId: refId });
         if (referrer) {
-          referrer.referrals += 1;
-          referrer.balance += 5000;
-          await referrer.save();
-          console.log(`👥 Реферал засчитан: ${refId} -> ${req.params.telegramId}`);
+          await Player.findOneAndUpdate(
+            { telegramId: refId },
+            {
+              $inc: {
+                referrals: 1,
+                balance: 5000,
+                "weeklyMission.current": 5000 // учёт в недельной миссии
+              }
+            }
+          
+          );
         }
       }
     }
-
     // Инициализация структур
     if (!player.dailyTasks) player.dailyTasks = { dailyTaps: 0, dailyTarget: 5000, rewardReceived: false };
     if (!player.weeklyMission) player.weeklyMission = { mavrodikGoal: 100000, current: 0, completed: false };
@@ -86,6 +92,7 @@ router.post("/", async (req, res) => {
     const now = new Date();
     const updateFields = {};
     const incFields = {};
+    
 
     // Обновляем базовые поля
     if (playerName) updateFields.playerName = playerName;
@@ -100,6 +107,7 @@ router.post("/", async (req, res) => {
     // Атомарный инкремент баланса
     if (typeof balanceBonus === "number" && balanceBonus > 0) {
       incFields.balance = balanceBonus;
+      incFields["weeklyMission.current"] = balanceBonus;
     }
 
     // Ежедневные задачи
@@ -108,7 +116,12 @@ router.post("/", async (req, res) => {
       if (!(dailyTasks.rewardReceived && lastDaily === now.toDateString())) {
         updateFields.dailyTasks = dailyTasks;
         if (dailyTasks.rewardReceived) updateFields.lastDailyRewardAt = now;
-      }
+         // 📈 Ежедневный бонус на баланс и в недельную миссию
+     const DAILY_BONUS = 5000; // замените на ваше значение
+     incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
+     incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
+   }
+      
     }
 
     // Еженедельные миссии

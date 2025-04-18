@@ -63,7 +63,11 @@ const srStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         premiumSince:   now,
         premiumExpires: expires,
         srActiveSince: srStart,
-        $inc: { balance: 50000 },
+        $inc: {
+                   balance: 50000,
+                   // покупка премиума тоже бонус для недельной миссии
+                   "weeklyMission.current": 50000
+                 },
         srRating:       0  // сброс рейтинга при продлении
       },
       { upsert: true, new: true }
