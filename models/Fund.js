@@ -1,15 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const Fund = require('../models/Fund');
+const mongoose = require('mongoose');
 
-router.get('/', async (req, res) => {
-  try {
-    const fund = await Fund.findOne();
-    res.json({ total: fund.total });
-  } catch (err) {
-    console.error("Ошибка чтения пула:", err);
-    res.status(500).json({ error: "Не удалось получить пул выплат" });
-  }
-});
+const fundSchema = new mongoose.Schema({
+  // сюда накапливается общий призовой пул (в мавродиках)
+  total: { type: Number, default: 0 },
+}, { collection: 'fund' });
 
-module.exports = router;
+module.exports = mongoose.model('Fund', fundSchema);
