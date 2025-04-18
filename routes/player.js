@@ -114,15 +114,18 @@ router.post("/", async (req, res) => {
     // Ежедневные задачи
     if (dailyTasks) {
       const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
-      if (!(dailyTasks.rewardReceived && lastDaily === now.toDateString())) {
+      const today = now.toDateString();
+    
+      if (dailyTasks.rewardReceived && lastDaily !== today) {
         updateFields.dailyTasks = dailyTasks;
-        if (dailyTasks.rewardReceived) updateFields.lastDailyRewardAt = now;
-         // 📈 Ежедневный бонус на баланс и в недельную миссию
-     const DAILY_BONUS = 5000; // замените на ваше значение
-     incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
-     incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
-   }
-   console.log("→ [player] after processing:", { updateFields, incFields });   
+        updateFields.lastDailyRewardAt = now;
+    
+        const DAILY_BONUS = 5000;
+        incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
+        incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
+      } else {
+        updateFields.dailyTasks = dailyTasks; // просто обновляем прогресс
+      }
     }
 
     // Еженедельные миссии
