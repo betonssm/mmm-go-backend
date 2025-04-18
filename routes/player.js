@@ -12,7 +12,7 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// GET /player/:telegramId - получение или создание игрока с учётом реферала
+// GET /player/:telegramId - получение или создание игрока
 router.get("/:telegramId", async (req, res) => {
   try {
     let player = await Player.findOne({ telegramId: req.params.telegramId });
@@ -32,7 +32,7 @@ router.get("/:telegramId", async (req, res) => {
         totalTaps: 0,
         adsWatched: 0,
         boostCooldownUntil: null,
-        partnerSubscribed: false,
+        partnerSubscribed: false
       });
       await player.save();
       console.log("🆕 Новый игрок создан:", player);
@@ -41,18 +41,17 @@ router.get("/:telegramId", async (req, res) => {
         const referrer = await Player.findOne({ telegramId: refId });
         if (referrer) {
           referrer.referrals += 1;
-          referrer.balance += 5000; // бонус за реферала
+          referrer.balance += 5000;
           await referrer.save();
-          console.log(`👥 Реферал засчитан! ${refId} пригласил ${req.params.telegramId}`);
+          console.log(`👥 Реферал засчитан: ${refId} -> ${req.params.telegramId}`);
         }
       }
     }
 
-    // Инициализация структур при отсутствии
+    // Инициализация структур
     if (!player.dailyTasks) player.dailyTasks = { dailyTaps: 0, dailyTarget: 5000, rewardReceived: false };
     if (!player.weeklyMission) player.weeklyMission = { mavrodikGoal: 100000, current: 0, completed: false };
     if (typeof player.partnerSubscribed === "undefined") player.partnerSubscribed = false;
-
     await player.save();
     res.json(player);
   } catch (err) {
@@ -61,7 +60,7 @@ router.get("/:telegramId", async (req, res) => {
   }
 });
 
-// POST /player - обновление полей игрока, включая SR-рейтинг с учётом подписки
+// POST /player - обновление полей игрока с атомарным инкрементом баланса
 router.post("/", async (req, res) => {
   console.log("📥 Получены данные игрока (POST):", req.body);
   const {
@@ -77,20 +76,18 @@ router.post("/", async (req, res) => {
     dailyTasks,
     weeklyMission,
     balanceBonus,
-    // srRating приходит из клиентского кода, но мы учтём подписку при установке
     srRating,
   } = req.body;
 
   try {
     const player = await Player.findOne({ telegramId });
-    if (!player) {
-      return res.status(404).json({ error: "Игрок не найден" });
-    }
+    if (!player) return res.status(404).json({ error: "Игрок не найден" });
 
     const now = new Date();
     const updateFields = {};
+    const incFields = {};
 
-    // Обновление базовых полей
+    // Обновляем базовые поля
     if (playerName) updateFields.playerName = playerName;
     if (typeof level !== "undefined") updateFields.level = level;
     if (typeof isBoostActive !== "undefined") updateFields.isBoostActive = isBoostActive;
@@ -100,41 +97,48 @@ router.post("/", async (req, res) => {
     if (typeof boostCooldownUntil !== "undefined") updateFields.boostCooldownUntil = boostCooldownUntil || null;
     if (typeof partnerSubscribed !== "undefined") updateFields.partnerSubscribed = partnerSubscribed;
 
-    // Начисление бонусного баланса
-    if (typeof balanceBonus !== "undefined" && balanceBonus > 0) {
-      updateFields.balance = (player.balance || 0) + balanceBonus;
+    // Атомарный инкремент баланса
+    if (typeof balanceBonus === "number" && balanceBonus > 0) {
+      incFields.balance = balanceBonus;
     }
 
-    // Обновление ежедневных и недельных заданий
+    // Ежедневные задачи
     if (dailyTasks) {
-      // Защита от повтора ежедневной награды
-      if (!(dailyTasks.rewardReceived && player.lastDailyRewardAt && now.toDateString() === new Date(player.lastDailyRewardAt).toDateString())) {
+      const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
+      if (!(dailyTasks.rewardReceived && lastDaily === now.toDateString())) {
         updateFields.dailyTasks = dailyTasks;
         if (dailyTasks.rewardReceived) updateFields.lastDailyRewardAt = now;
       }
     }
+
+    // Еженедельные миссии
     if (weeklyMission) {
-      // Защита от повтора недельной награды
-      const lastWeek = player.lastWeeklyRewardAt ? getWeekNumber(new Date(player.lastWeeklyRewardAt)) : null;
-      const currentWeek = getWeekNumber(now);
-      if (!(weeklyMission.completed && lastWeek === currentWeek)) {
+      const getWeek = d => { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - day); const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1)); return Math.ceil(((dt - yearStart) / 86400000 + 1) / 7); };
+      const lastWeek = player.lastWeeklyRewardAt ? getWeek(new Date(player.lastWeeklyRewardAt)) : null;
+      const currWeek = getWeek(now);
+      if (!(weeklyMission.completed && lastWeek === currWeek)) {
         updateFields.weeklyMission = weeklyMission;
         if (weeklyMission.completed) updateFields.lastWeeklyRewardAt = now;
       }
     }
 
-    // Обновление SR-рейтинга только при активной подписке
+    // SR-рейтинги только при активной подписке
     if (typeof srRating !== "undefined") {
-      if (player.isInvestor && player.premiumExpires && now < player.premiumExpires) {
+      if (player.isInvestor && player.premiumExpires && now < new Date(player.premiumExpires)) {
         updateFields.srRating = srRating;
       } else {
         updateFields.srRating = 0;
       }
     }
 
+    // Сборка запроса: $set и $inc
+    const updateQuery = {};
+    if (Object.keys(updateFields).length) updateQuery.$set = updateFields;
+    if (Object.keys(incFields).length) updateQuery.$inc = incFields;
+
     const updated = await Player.findOneAndUpdate(
       { telegramId },
-      updateFields,
+      updateQuery,
       { new: true }
     );
 
@@ -144,14 +148,5 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
   }
 });
-
-// Вспомогательная функция для номера недели
-function getWeekNumber(d) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
-}
 
 module.exports = router;
