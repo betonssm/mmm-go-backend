@@ -127,12 +127,31 @@ router.post("/", async (req, res) => {
 
     // Еженедельные миссии
     if (weeklyMission) {
-      const getWeek = d => { const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = dt.getUTCDay() || 7; dt.setUTCDate(dt.getUTCDate() + 4 - day); const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1)); return Math.ceil(((dt - yearStart) / 86400000 + 1) / 7); };
-      const lastWeek = player.lastWeeklyRewardAt ? getWeek(new Date(player.lastWeeklyRewardAt)) : null;
+      const getWeek = d => {
+        const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const day = dt.getUTCDay() || 7;
+        dt.setUTCDate(dt.getUTCDate() + 4 - day);
+        const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+        return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
+      };
+      const lastWeek = player.lastWeeklyRewardAt
+        ? getWeek(new Date(player.lastWeeklyRewardAt))
+        : null;
       const currWeek = getWeek(now);
+    
+      // если ещё не выдавали награду за эту неделю
       if (!(weeklyMission.completed && lastWeek === currWeek)) {
-        updateFields.weeklyMission = weeklyMission;
-        if (weeklyMission.completed) updateFields.lastWeeklyRewardAt = now;
+        // задаём только нужные поля
+        updateFields["weeklyMission.current"]   = weeklyMission.current;
+        updateFields["weeklyMission.completed"] = weeklyMission.completed;
+        if (weeklyMission.completed) {
+          updateFields.lastWeeklyRewardAt = now;
+        }
+        // убираем возможный incFields для weeklyMission.current,
+        // чтобы избежать конфликта $set + $inc
+        if (incFields["weeklyMission.current"]) {
+          delete incFields["weeklyMission.current"];
+        }
       }
     }
 
