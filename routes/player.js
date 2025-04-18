@@ -92,6 +92,7 @@ router.post("/", async (req, res) => {
     const now = new Date();
     const updateFields = {};
     const incFields = {};
+    console.log("→ [player] до обработки: ", { updateFields, incFields });
     
 
     // Обновляем базовые поля
@@ -121,7 +122,7 @@ router.post("/", async (req, res) => {
      incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
      incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
    }
-      
+   console.log("→ [player] after processing:", { updateFields, incFields });   
     }
 
     // Еженедельные миссии
@@ -144,9 +145,17 @@ router.post("/", async (req, res) => {
        }
 
     // Сборка запроса: $set и $inc
+    console.log("→ [player] updateQuery will be:", {
+      // если есть поля для $set — покажем их, иначе ничего
+      ...(Object.keys(updateFields).length > 0 && { $set: updateFields }),
+      // если есть поля для $inc — покажем их
+      ...(Object.keys(incFields).length   > 0 && { $inc: incFields }),
+    });
+  
+    // 2) А только потом строим сам updateQuery и шлём его
     const updateQuery = {};
     if (Object.keys(updateFields).length) updateQuery.$set = updateFields;
-    if (Object.keys(incFields).length) updateQuery.$inc = incFields;
+    if (Object.keys(incFields).length)    updateQuery.$inc = incFields;
 
     const updated = await Player.findOneAndUpdate(
       { telegramId },
