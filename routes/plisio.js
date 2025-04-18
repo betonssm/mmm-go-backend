@@ -38,25 +38,30 @@ router.post("/create-payment", async (req, res) => {
 });
 
 // POST /plisio/callback
+// При успешной оплате обновляем подписку
 router.post("/callback", async (req, res) => {
   console.log("→ [plisio] /callback BODY:", req.body);
   const { order_number: telegramId, status } = req.body;
 
   if (status === "completed") {
+    const now = new Date();
+    const expires = new Date(now);
+    expires.setDate(expires.getDate() + 30); // подписка на 30 дней
+
     const player = await Player.findOneAndUpdate(
       { telegramId },
       {
-        isInvestor:   true,
-        premiumSince: new Date(),      // дата оформления премиум
-        $inc: { balance: 50000 },     // начисляем 50k мавродиков
+        isInvestor:     true,
+        premiumSince:   now,
+        premiumExpires: expires,
+        $inc: { balance: 50000 },
+        srRating:       0  // сброс рейтинга при продлении
       },
       { upsert: true, new: true }
     );
+
     console.log(
-      "✅ Премиум оформлен и 50k зачислено:",
-      telegramId,
-      "новый баланс=",
-      player.balance
+      `✅ ${telegramId} получил премиум до ${expires.toISOString()}, новый баланс=${player.balance}`
     );
   }
 
