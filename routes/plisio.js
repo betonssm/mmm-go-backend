@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 const Player = require("../models/Player");
+const Fund = require('../models/Fund');
 
 // POST /plisio/create-payment
 router.post("/create-payment", async (req, res) => {
@@ -47,6 +48,12 @@ router.post("/callback", async (req, res) => {
     const now = new Date();
     const expires = new Date(now);
     expires.setDate(expires.getDate() + 30); // подписка на 30 дней
+     // 60% от уплаченного доната идёт в призовой пул
+  // source_amount — сумма в USD, mavroPerUsd = 50000/10 если 50k за $10
+const mavroPerUsd = 50000 / 10;
+const increment = source_amount * mavroPerUsd * 0.6;
+await Fund.findOneAndUpdate({}, { $inc: { total: increment } });
+console.log(`💰 Пул увеличен на ${increment} мавродиков`);
 
     const player = await Player.findOneAndUpdate(
       { telegramId },
