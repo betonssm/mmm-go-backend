@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
     console.error("Ошибка чтения пула:", err);
     res.status(500).json({ error: "Не удалось получить пул выплат" });
   }
+  
 });
 
 module.exports = router;
