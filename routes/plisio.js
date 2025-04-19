@@ -48,28 +48,27 @@ router.post("/callback", async (req, res) => {
   if (status === "completed") {
     const now = new Date();
     const expires = new Date(now);
-    expires.setDate(expires.getDate() + 30); // подписка на 30 дней
-     // 60% от уплаченного доната идёт в призовой пул
-// USDT: просто 60% от заплаченной суммы
-// 2) Дата старта SR — 1‑е число следующего месяца   
-const srStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const usdtIncrement = source_amount * 0.6;
-  await Fund.findOneAndUpdate({}, { $inc: { total: usdtIncrement } });
-  console.log(`💰 Пул увеличен на ${usdtIncrement.toFixed(2)} USDT`);
+    expires.setDate(expires.getDate() + 30);
+
+    const srStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const sourceAmount = parseFloat(req.body.source_amount) || 10;
+    const usdtIncrement = sourceAmount * 0.6;
+
+    await Fund.findOneAndUpdate({}, { $inc: { total: usdtIncrement } });
+    console.log(`💰 Пул увеличен на ${usdtIncrement.toFixed(2)} USDT`);
 
     const player = await Player.findOneAndUpdate(
       { telegramId },
       {
-        isInvestor:     true,
-        premiumSince:   now,
+        isInvestor: true,
+        premiumSince: now,
         premiumExpires: expires,
         srActiveSince: srStart,
         $inc: {
-                   balance: 50000,
-                   // покупка премиума тоже бонус для недельной миссии
-                   "weeklyMission.current": 50000
-                 },
-        srRating:       0  // сброс рейтинга при продлении
+          balance: 50000,
+          "weeklyMission.current": 50000
+        },
+        srRating: 0
       },
       { upsert: true, new: true }
     );
