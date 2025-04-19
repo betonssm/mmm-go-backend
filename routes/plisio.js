@@ -20,7 +20,7 @@ router.post("/create-payment", async (req, res) => {
     callback_url:        "https://mmmgo-backend.onrender.com/plisio/callback",
     success_invoice_url: "https://mmmgo-frontend.onrender.com/payment-success",
     fail_invoice_url:    "https://mmmgo-frontend.onrender.com/payment-failed",
-    allowed_psys_cids:   "USDT.TRC20",
+   
   };
 
   try {
