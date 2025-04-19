@@ -15,7 +15,6 @@ router.post("/create-payment", async (req, res) => {
     shop_id:             process.env.PLISIO_SHOP_ID,
     order_name:          "MMM GO Premium",
     order_number:        telegramId,
-    source_currency:     "USDT.TRC20",
     source_amount:       amount || 10,
     callback_url:        "https://mmmgo-backend.onrender.com/plisio/callback",
     success_invoice_url: "https://mmmgo-frontend.onrender.com/payment-success",
