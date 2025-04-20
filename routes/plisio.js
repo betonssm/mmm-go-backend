@@ -122,14 +122,21 @@ router.post("/create-balance-payment", async (req, res) => {
 });
 
 // 🔹 Callback для buy-coins
-router.post("/create-balance-payment", async (req, res) => {
-  const { order_number, status } = req.body;
+router.post("/callback", async (req, res) => {
+  console.log("📩 Поступил callback:", req.body);
 
-  if (status === "completed") {
-    const match = order_number.match(/BUY_(\d+)_/);
+  const { order_number, status, source_amount } = req.body;
+
+  if (status !== "completed" || !order_number) {
+    return res.sendStatus(200); // неуспешный платёж — игнорируем
+  }
+
+  // === 📌 Покупка мавродиков ===
+  if (order_number.endsWith("_buyMavro")) {
+    const match = order_number.match(/^(\d+)_buyMavro$/);
     if (!match) return res.sendStatus(400);
 
-    const telegramId = parseInt(match[1]);
+    const telegramId = parseInt(match[1], 10);
     const BONUS = 50000;
 
     const player = await Player.findOneAndUpdate(
@@ -143,13 +150,43 @@ router.post("/create-balance-payment", async (req, res) => {
       { new: true }
     );
 
-    console.log(`💸 Игрок ${telegramId} докупил 50 000 мавродиков. Новый баланс: ${player.balance}`);
+    console.log(`💸 Игрок ${telegramId} ДОКУПИЛ 50 000 мавродиков. Новый баланс: ${player.balance}`);
+    return res.sendStatus(200);
   }
 
+  // === 📌 Подписка (по умолчанию) ===
+  const telegramId = parseInt(order_number);
+  const now = new Date();
+  const expires = new Date(now);
+  expires.setDate(expires.getDate() + 30);
+
+  const srStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const usdtIncrement = parseFloat(source_amount) * 0.6 || 6;
+
+  await Fund.findOneAndUpdate({}, { $inc: { total: usdtIncrement } });
+  console.log(`💰 Пул увеличен на ${usdtIncrement.toFixed(2)} USDT`);
+
+  const player = await Player.findOneAndUpdate(
+    { telegramId },
+    {
+      isInvestor: true,
+      premiumSince: now,
+      premiumExpires: expires,
+      srActiveSince: srStart,
+      $inc: {
+        balance: 50000,
+        "weeklyMission.current": 50000
+      },
+      srRating: 0
+    },
+    { upsert: true, new: true }
+  );
+
+  console.log(`✅ ${telegramId} получил премиум до ${expires.toISOString()}, SR начнётся ${srStart.toISOString()}, баланс=${player.balance}`);
 
   res.sendStatus(200);
-  
 });
+
 
 
 module.exports = router;
