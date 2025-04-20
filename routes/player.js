@@ -154,6 +154,8 @@ router.post("/", async (req, res) => {
         updateFields["weeklyMission.current"] = weeklyMission.current;
         updateFields["weeklyMission.completed"] = weeklyMission.completed;
         updateFields.lastWeeklyRewardAt = now;
+        const WEEKLY_BONUS = 10000;
+        incFields.balance = (incFields.balance || 0) + WEEKLY_BONUS;
 
         if (incFields["weeklyMission.current"]) {
           delete incFields["weeklyMission.current"];
