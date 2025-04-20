@@ -7,8 +7,13 @@ const Fund = require('../models/Fund');
 
 // POST /plisio/create-payment
 router.post("/create-payment", async (req, res) => {
-  console.log("→ [plisio] /create-payment BODY:", req.body);
   const { telegramId, amount } = req.body;
+
+  console.log("→ [plisio] Запрос на создание платежа:", {
+    telegramId,
+    amount: amount || 10,
+    currency: "USDT.TRC20"
+  });
 
   const params = {
     api_key:             process.env.PLISIO_API_KEY,
@@ -31,18 +36,26 @@ router.post("/create-payment", async (req, res) => {
     );
     return res.json(data);
   } catch (err) {
-    console.error("❌ [plisio] error.response.data:", err.response?.data);
-    console.error("❌ [plisio] err.message         :", err.message);
+    const safeError = { ...err.response?.data };
+    if (safeError?.data?.api_key) {
+      safeError.data.api_key = "[HIDDEN]";
+    }
+
+    console.error("❌ [plisio] Ошибка создания платежа:", safeError || err.message);
+
     return res
       .status(err.response?.status || 500)
-      .json({ error: "Ошибка создания платежа", details: err.response?.data });
+      .json({ error: "Ошибка создания платежа", details: safeError || err.message });
   }
 });
 
 // POST /plisio/callback
-// При успешной оплате обновляем подписку
 router.post("/callback", async (req, res) => {
-  console.log("→ [plisio] /callback BODY:", req.body);
+  console.log("→ [plisio] Callback от Plisio:", {
+    order_number: req.body.order_number,
+    status: req.body.status
+  });
+
   const { order_number: telegramId, status } = req.body;
 
   if (status === "completed") {
@@ -78,5 +91,6 @@ router.post("/callback", async (req, res) => {
 
   res.sendStatus(200);
 });
+
 
 module.exports = router;
