@@ -141,16 +141,8 @@ router.post("/", async (req, res) => {
         ? getWeek(new Date(player.lastWeeklyRewardAt))
         : null;
       const currWeek = getWeek(now);
-      const lastWeekReward = player.lastWeeklyRewardAt
-  ? new Date(player.lastWeeklyRewardAt).getWeek()
-  : null;
-
-if (weeklyMission.completed && lastWeekReward === currWeek) {
-  console.log("⛔ Недельная награда уже получена на этой неделе");
-  return res.status(400).json({ error: "Награда за неделю уже получена" });
-}
-    
-      // если ещё не выдавали награду за эту неделю
+      
+ // если ещё не выдавали награду за эту неделю
       if (!weeklyMission.completed || lastWeek !== currWeek) {
         updateFields["weeklyMission.current"]   = weeklyMission.current;
         updateFields["weeklyMission.completed"] = weeklyMission.completed;
