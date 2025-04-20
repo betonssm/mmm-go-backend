@@ -143,13 +143,15 @@ router.post("/", async (req, res) => {
       const currWeek = getWeek(now);
     
       // если ещё не выдавали награду за эту неделю
-      if (!(weeklyMission.completed && lastWeek === currWeek)) {
-        // задаём только нужные поля
+      if (!weeklyMission.completed || lastWeek !== currWeek) {
         updateFields["weeklyMission.current"]   = weeklyMission.current;
         updateFields["weeklyMission.completed"] = weeklyMission.completed;
+      
+        // Если завершена — обновим дату получения награды
         if (weeklyMission.completed) {
           updateFields.lastWeeklyRewardAt = now;
         }
+      
         // убираем возможный incFields для weeklyMission.current,
         // чтобы избежать конфликта $set + $inc
         if (incFields["weeklyMission.current"]) {
