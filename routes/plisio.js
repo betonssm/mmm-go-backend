@@ -93,7 +93,7 @@ router.post("/callback", async (req, res) => {
 });
 
 // 🔹 Новый маршрут: создание платежа для покупки 50 000 мавродиков
-router.post("/buy-coins", async (req, res) => {
+router.post("/create-balance-payment", async (req, res) => {
   const { telegramId } = req.body;
 
   const params = {
@@ -146,7 +146,10 @@ router.post("/create-balance-payment", async (req, res) => {
     console.log(`💸 Игрок ${telegramId} докупил 50 000 мавродиков. Новый баланс: ${player.balance}`);
   }
 
+
   res.sendStatus(200);
+  
 });
+
 
 module.exports = router;
