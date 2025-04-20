@@ -103,7 +103,11 @@ router.post("/", async (req, res) => {
 
     if (typeof balanceBonus === "number" && balanceBonus > 0) {
       incFields.balance = balanceBonus;
-      incFields["weeklyMission.current"] = balanceBonus;
+    
+      // ✅ Прогресс увеличиваем ТОЛЬКО если миссия не завершена
+      if (!player.weeklyMission?.completed) {
+        incFields["weeklyMission.current"] = balanceBonus;
+      }
     }
 
     if (dailyTasks) {
