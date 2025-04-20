@@ -122,7 +122,7 @@ router.post("/buy-coins", async (req, res) => {
 });
 
 // 🔹 Callback для buy-coins
-router.post("/buy-coins-callback", async (req, res) => {
+router.post("/create-balance-payment", async (req, res) => {
   const { order_number, status } = req.body;
 
   if (status === "completed") {
