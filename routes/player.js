@@ -143,22 +143,33 @@ router.post("/", async (req, res) => {
       const currWeek = getWeek(now);
       
  // если ещё не выдавали награду за эту неделю
-      if (!weeklyMission.completed || lastWeek !== currWeek) {
-        updateFields["weeklyMission.current"]   = weeklyMission.current;
-        updateFields["weeklyMission.completed"] = weeklyMission.completed;
-      
-        // Если завершена — обновим дату получения награды
-        if (weeklyMission.completed) {
-          updateFields.lastWeeklyRewardAt = now;
-        }
-      
-        // убираем возможный incFields для weeklyMission.current,
-        // чтобы избежать конфликта $set + $inc
-        if (incFields["weeklyMission.current"]) {
-          delete incFields["weeklyMission.current"];
-        }
-      }
-    }
+ function getWeekNumber(date) {
+  const oneJan = new Date(date.getFullYear(), 0, 1);
+  const dayOfYear = Math.floor((date - oneJan + 86400000) / 86400000);
+  return Math.ceil((dayOfYear + oneJan.getDay()) / 7);
+}
+
+if (player.lastWeeklyRewardAt) {
+  const lastReward = new Date(player.lastWeeklyRewardAt);
+  const sameYear = lastReward.getFullYear() === now.getFullYear();
+  const sameWeek = getWeekNumber(lastReward) === getWeekNumber(now);
+
+  if (sameYear && sameWeek) {
+    console.log("⛔ Недельная награда уже выдана в этом цикле");
+    return res.status(400).json({ error: "Награда за неделю уже получена" });
+  }
+}
+
+// ✅ Если награда не выдавалась на этой неделе — выдаём
+if (weeklyMission.completed) {
+  updateFields["weeklyMission.current"]   = weeklyMission.current;
+  updateFields["weeklyMission.completed"] = weeklyMission.completed;
+  updateFields.lastWeeklyRewardAt         = now;
+
+  if (incFields["weeklyMission.current"]) {
+    delete incFields["weeklyMission.current"];
+  }
+}
 
     // SR-рейтинги только при активной подписке
     if (typeof srRating !== "undefined") {
