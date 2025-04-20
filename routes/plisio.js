@@ -92,5 +92,61 @@ router.post("/callback", async (req, res) => {
   res.sendStatus(200);
 });
 
+// 🔹 Новый маршрут: создание платежа для покупки 50 000 мавродиков
+router.post("/buy-coins", async (req, res) => {
+  const { telegramId } = req.body;
+
+  const params = {
+    api_key: process.env.PLISIO_API_KEY,
+    shop_id: process.env.PLISIO_SHOP_ID,
+    order_name: "Покупка 50 000 мавродиков",
+    source_currency: "USD",
+    order_number: `${telegramId}_buyMavro`, // ⬅ отличие
+    return_existing: 1,
+    source_amount: 10,
+    callback_url: "https://mmmgo-backend.onrender.com/plisio/callback",
+    success_invoice_url: "https://mmmgo-frontend.onrender.com/payment-success",
+    fail_invoice_url: "https://mmmgo-frontend.onrender.com/payment-failed",
+    allowed_psys_cids: "USDT_TRX"
+  };
+
+  try {
+    const { data } = await axios.get("https://api.plisio.net/api/v1/invoices/new", { params });
+    res.json(data);
+  } catch (err) {
+    const safeError = { ...err.response?.data };
+    if (safeError?.data?.api_key) safeError.data.api_key = "[HIDDEN]";
+    console.error("❌ [plisio] Ошибка создания buy-coins платежа:", safeError || err.message);
+    res.status(500).json({ error: "Ошибка при создании платежа на покупку мавродиков", details: safeError || err.message });
+  }
+});
+
+// 🔹 Callback для buy-coins
+router.post("/buy-coins-callback", async (req, res) => {
+  const { order_number, status } = req.body;
+
+  if (status === "completed") {
+    const match = order_number.match(/BUY_(\d+)_/);
+    if (!match) return res.sendStatus(400);
+
+    const telegramId = parseInt(match[1]);
+    const BONUS = 50000;
+
+    const player = await Player.findOneAndUpdate(
+      { telegramId },
+      {
+        $inc: {
+          balance: BONUS,
+          "weeklyMission.current": BONUS
+        }
+      },
+      { new: true }
+    );
+
+    console.log(`💸 Игрок ${telegramId} докупил 50 000 мавродиков. Новый баланс: ${player.balance}`);
+  }
+
+  res.sendStatus(200);
+});
 
 module.exports = router;
