@@ -109,6 +109,22 @@ router.post("/", async (req, res) => {
         incFields["weeklyMission.current"] = balanceBonus;
       }
     }
+    // 🔁 Начисление 10% бонуса пригласившему
+if (player.refSource && balanceBonus > 0) {
+  const refBonus = Math.floor(balanceBonus * 0.1);
+
+  await Player.findOneAndUpdate(
+    { telegramId: player.refSource },
+    {
+      $inc: {
+        balance: refBonus,
+        "weeklyMission.current": refBonus
+      }
+    }
+  );
+
+  console.log(`🎁 Пригласивший ${player.refSource} получил ${refBonus} мавродиков от ${telegramId}`);
+}
 
     if (dailyTasks) {
       const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
