@@ -225,5 +225,27 @@ router.get("/ref-source/:telegramId", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера", details: err.message });
   }
 });
+// 🔹 Тестовая ручная симуляция создания игрока с рефералом
+router.get("/test-create/:telegramId", async (req, res) => {
+  const telegramId = parseInt(req.params.telegramId);
+  const refId = req.query.ref;
+
+  try {
+    const player = await Player.findOne({ telegramId });
+    if (player) return res.json({ message: "Игрок уже существует", player });
+
+    const newPlayer = new Player({
+      telegramId,
+      playerName: "Тестовый игрок",
+      refSource: refId || null,
+    });
+
+    await newPlayer.save();
+    res.json({ message: "Игрок создан", newPlayer });
+  } catch (err) {
+    console.error("❌ Ошибка при создании тестового игрока:", err);
+    res.status(500).json({ error: "Ошибка при создании тестового игрока" });
+  }
+});
 
 module.exports = router;
