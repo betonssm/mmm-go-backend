@@ -32,7 +32,8 @@ router.get("/:telegramId", async (req, res) => {
         totalTaps: 0,
         adsWatched: 0,
         boostCooldownUntil: null,
-        partnerSubscribed: false
+        partnerSubscribed: false,
+        refSource: refId || null,
       });
       await player.save();
       console.log("🆕 Новый игрок создан:", player);
