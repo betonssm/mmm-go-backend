@@ -210,5 +210,20 @@ if (player.refSource && balanceBonus > 0) {
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
   }
 });
+router.get("/ref-source/:telegramId", async (req, res) => {
+  try {
+    const player = await Player.findOne({ telegramId: req.params.telegramId });
+
+    if (!player) return res.status(404).json({ error: "Игрок не найден" });
+
+    res.json({
+      telegramId: player.telegramId,
+      playerName: player.playerName,
+      refSource: player.refSource || null,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Ошибка сервера", details: err.message });
+  }
+});
 
 module.exports = router;
