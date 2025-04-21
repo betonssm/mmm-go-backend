@@ -33,6 +33,9 @@ const playerSchema = new mongoose.Schema({
 
   // Количество рефералов
   referrals:        { type: Number, default: 0 },
+  refSource: { type: Number, default: null }, 
+  refBonusBuffer: { type: Number, default: 0 },
+  referralEarnings: { type: Number, default: 0 }, // Буфер накопления бонусов от рефералов// Telegram ID пригласившего
 
   // ---------------------------------------------
   // Статистика активностей

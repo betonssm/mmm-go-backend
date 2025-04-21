@@ -110,22 +110,32 @@ router.post("/", async (req, res) => {
         incFields["weeklyMission.current"] = balanceBonus;
       }
     }
-    // 🔁 Начисление 10% бонуса пригласившему
-if (player.refSource && balanceBonus > 0) {
-  const refBonus = Math.floor(balanceBonus * 0.1);
-
-  await Player.findOneAndUpdate(
-    { telegramId: player.refSource },
-    {
-      $inc: {
-        balance: refBonus,
-        "weeklyMission.current": refBonus
+    if (player.refSource && balanceBonus > 0) {
+      const bonus = balanceBonus * 0.1;
+    
+      const referrer = await Player.findOne({ telegramId: player.refSource });
+      if (referrer) {
+        const newBuffer = (referrer.refBonusBuffer || 0) + bonus;
+        const wholeCoins = Math.floor(newBuffer);
+        const remaining = newBuffer - wholeCoins;
+    
+        const update = {
+          refBonusBuffer: remaining
+        };
+    
+        if (wholeCoins > 0) {
+          update.balance = (referrer.balance || 0) + wholeCoins;
+          update["weeklyMission.current"] = (referrer.weeklyMission?.current || 0) + wholeCoins;
+          update.referralEarnings = (referrer.referralEarnings || 0) + wholeCoins; 
+        }
+    
+        await Player.updateOne({ telegramId: referrer.telegramId }, { $set: update });
+    
+        if (wholeCoins > 0) {
+          console.log(`🎁 Пригласивший ${referrer.telegramId} получил ${wholeCoins} мавродиков от ${telegramId}`);
+        }
       }
     }
-  );
-
-  console.log(`🎁 Пригласивший ${player.refSource} получил ${refBonus} мавродиков от ${telegramId}`);
-}
 
     if (dailyTasks) {
       const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
@@ -210,42 +220,6 @@ if (player.refSource && balanceBonus > 0) {
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
   }
 });
-router.get("/ref-source/:telegramId", async (req, res) => {
-  try {
-    const player = await Player.findOne({ telegramId: req.params.telegramId });
 
-    if (!player) return res.status(404).json({ error: "Игрок не найден" });
-
-    res.json({
-      telegramId: player.telegramId,
-      playerName: player.playerName,
-      refSource: player.refSource || null,
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Ошибка сервера", details: err.message });
-  }
-});
-// 🔹 Тестовая ручная симуляция создания игрока с рефералом
-router.get("/test-create/:telegramId", async (req, res) => {
-  const telegramId = parseInt(req.params.telegramId);
-  const refId = req.query.ref;
-
-  try {
-    const player = await Player.findOne({ telegramId });
-    if (player) return res.json({ message: "Игрок уже существует", player });
-
-    const newPlayer = new Player({
-      telegramId,
-      playerName: "Тестовый игрок",
-      refSource: refId || null,
-    });
-
-    await newPlayer.save();
-    res.json({ message: "Игрок создан", newPlayer });
-  } catch (err) {
-    console.error("❌ Ошибка при создании тестового игрока:", err);
-    res.status(500).json({ error: "Ошибка при создании тестового игрока" });
-  }
-});
 
 module.exports = router;
