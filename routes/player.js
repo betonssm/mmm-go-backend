@@ -185,15 +185,18 @@ if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
     if (dailyTasks) {
       const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
       const today = now.toDateString();
-
+    
+      const DAILY_BONUS = 5000;
+    
+      // Если это обновление награды (одноразовое)
       if (dailyTasks.rewardReceived && lastDaily !== today) {
-        updateFields.dailyTasks = dailyTasks;
+        updateFields["dailyTasks.rewardReceived"] = true;
         updateFields.lastDailyRewardAt = now;
-        const DAILY_BONUS = 5000;
         incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
-        incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
-      } else {
-        updateFields.dailyTasks = dailyTasks;
+    
+        if (!player.weeklyMission?.completed) {
+          incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
+        }
       }
     }
 
@@ -248,6 +251,10 @@ const currWeek = getWeekNumber(now);
       ...(Object.keys(updateFields).length > 0 && { $set: updateFields }),
       ...(Object.keys(incFields).length > 0 && { $inc: incFields })
     });
+    // Убираем возможный конфликт Mongo: $set + $inc на одном объекте
+if (incFields["dailyTasks.dailyTaps"]) {
+  delete updateFields.dailyTasks;
+}
 
     const updateQuery = {};
     if (Object.keys(updateFields).length) updateQuery.$set = updateFields;
