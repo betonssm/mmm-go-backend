@@ -86,6 +86,12 @@ router.post("/", async (req, res) => {
 
   try {
     const player = await Player.findOne({ telegramId });
+    console.log("📥 Получены данные игрока (POST):", req.body);
+    console.log("🧪 Игрок из базы:", {
+      weeklyMission: player.weeklyMission,
+      dailyTasks: player.dailyTasks,
+      lastWeeklyRewardAt: player.lastWeeklyRewardAt,
+    });
     if (!player) return res.status(404).json({ error: "Игрок не найден" });
 
     const now = new Date();
@@ -141,6 +147,8 @@ if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
         incFields["dailyTasks.dailyTaps"] = (incFields["dailyTasks.dailyTaps"] || 0) + balanceBonus;
       } else {
         console.log("⚠️ dailyTasks.dailyTaps не найден — прогресс не обновлён");
+        console.log("📦 balanceBonus:", balanceBonus);
+        console.log("🧩 incFields после balanceBonus:", incFields);
       }
     }
     
