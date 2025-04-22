@@ -109,8 +109,8 @@ router.post("/", async (req, res) => {
     if (!player.weeklyMission?.completed) {
         incFields["weeklyMission.current"] = balanceBonus;
       }
-      if (player.dailyTasks && typeof player.dailyTasks.dailyTaps === "number") {
-        updateFields["dailyTasks.dailyTaps"] = player.dailyTasks.dailyTaps + balanceBonus;
+      if (typeof player.dailyTasks?.dailyTaps === "number") {
+        incFields["dailyTasks.dailyTaps"] = balanceBonus;
       }
     }
     
