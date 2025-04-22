@@ -105,34 +105,34 @@ router.post("/", async (req, res) => {
     if (typeof balanceBonus === "number" && balanceBonus > 0) {
       incFields.balance = balanceBonus;
     
-      // ✅ Прогресс увеличиваем ТОЛЬКО если миссия не завершена
+      // ✅ Прогресс увеличиваем, если миссия не завершена
       if (!player.weeklyMission?.completed) {
         incFields["weeklyMission.current"] = balanceBonus;
       }
-    }
-    if (player.refSource && balanceBonus > 0) {
-      const bonus = balanceBonus * 0.1;
     
-      const referrer = await Player.findOne({ telegramId: player.refSource });
-      if (referrer) {
-        const newBuffer = (referrer.refBonusBuffer || 0) + bonus;
-        const wholeCoins = Math.floor(newBuffer);
-        const remaining = newBuffer - wholeCoins;
+      // === Начисление 10% бонуса пригласившему ===
+      if (player.refSource) {
+        const bonus = balanceBonus * 0.1;
+        const referrer = await Player.findOne({ telegramId: player.refSource });
     
-        const update = {
-          refBonusBuffer: remaining
-        };
+        if (referrer) {
+          const newBuffer = (referrer.refBonusBuffer || 0) + bonus;
+          const wholeCoins = Math.floor(newBuffer);
+          const remaining = newBuffer - wholeCoins;
     
-        if (wholeCoins > 0) {
-          update.balance = (referrer.balance || 0) + wholeCoins;
-          update["weeklyMission.current"] = (referrer.weeklyMission?.current || 0) + wholeCoins;
-          update.referralEarnings = (referrer.referralEarnings || 0) + wholeCoins; 
-        }
+          const update = { refBonusBuffer: remaining };
     
-        await Player.updateOne({ telegramId: referrer.telegramId }, { $set: update });
+          if (wholeCoins > 0) {
+            update.balance = (referrer.balance || 0) + wholeCoins;
+            update["weeklyMission.current"] = (referrer.weeklyMission?.current || 0) + wholeCoins;
+            update.referralEarnings = (referrer.referralEarnings || 0) + wholeCoins;
+          }
     
-        if (wholeCoins > 0) {
-          console.log(`🎁 Пригласивший ${referrer.telegramId} получил ${wholeCoins} мавродиков от ${telegramId}`);
+          await Player.updateOne({ telegramId: referrer.telegramId }, { $set: update });
+    
+          if (wholeCoins > 0) {
+            console.log(`🎁 Пригласивший ${referrer.telegramId} получил ${wholeCoins} мавродиков от ${telegramId}`);
+          }
         }
       }
     }
