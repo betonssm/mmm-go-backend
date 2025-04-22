@@ -89,6 +89,29 @@ router.post("/", async (req, res) => {
     if (!player) return res.status(404).json({ error: "Игрок не найден" });
 
     const now = new Date();
+
+// 📆 Сброс недельной миссии
+const weekStart = new Date(now);
+weekStart.setHours(0, 0, 0, 0);
+weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+if (player.lastWeeklyRewardAt && new Date(player.lastWeeklyRewardAt) < weekStart) {
+  console.log("🔄 Новая неделя — сбрасываем weeklyMission");
+  player.weeklyMission.current = 0;
+  player.weeklyMission.completed = false;
+  player.lastWeeklyRewardAt = null;
+  await player.save();
+}
+
+// ☀️ Сброс дневной награды (если новый день)
+const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
+const today = now.toDateString();
+
+if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
+  console.log("☀️ Новый день — сбрасываем dailyTasks.rewardReceived");
+  player.dailyTasks.rewardReceived = false;
+  await player.save();
+}
     const updateFields = {};
     const incFields = {};
     console.log("→ [player] до обработки: ", { updateFields, incFields });
@@ -105,12 +128,19 @@ router.post("/", async (req, res) => {
     if (typeof balanceBonus === "number" && balanceBonus > 0) {
       console.log("✅ Обнаружен balanceBonus:", balanceBonus);
       incFields.balance = balanceBonus;
-      // ✅ Прогресс увеличиваем, если миссия не завершена
-    if (!player.weeklyMission?.completed) {
-        incFields["weeklyMission.current"] = balanceBonus;
+    
+      // ✅ Прогресс недельной миссии — только если не завершена
+      if (!player.weeklyMission?.completed) {
+        incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + balanceBonus;
+      } else {
+        console.log("⛔ Миссия завершена — weekly прогресс не увеличиваем");
       }
+    
+      // ✅ Прогресс дневной миссии — всегда
       if (typeof player.dailyTasks?.dailyTaps === "number") {
-        incFields["dailyTasks.dailyTaps"] = balanceBonus;
+        incFields["dailyTasks.dailyTaps"] = (incFields["dailyTasks.dailyTaps"] || 0) + balanceBonus;
+      } else {
+        console.log("⚠️ dailyTasks.dailyTaps не найден — прогресс не обновлён");
       }
     }
     
@@ -160,22 +190,14 @@ router.post("/", async (req, res) => {
     }
 
     if (weeklyMission) {
-      const getWeek = d => {
-        const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        const day = dt.getUTCDay() || 7;
-        dt.setUTCDate(dt.getUTCDate() + 4 - day);
-        const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
-        return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
-      };
-
-      const getWeekNumber = date => {
+    const getWeekNumber = date => {
         const oneJan = new Date(date.getFullYear(), 0, 1);
         const dayOfYear = Math.floor((date - oneJan + 86400000) / 86400000);
         return Math.ceil((dayOfYear + oneJan.getDay()) / 7);
       };
 
-      const lastWeek = player.lastWeeklyRewardAt ? getWeek(new Date(player.lastWeeklyRewardAt)) : null;
-      const currWeek = getWeek(now);
+      const lastWeek = player.lastWeeklyRewardAt ? getWeekNumber(new Date(player.lastWeeklyRewardAt)) : null;
+const currWeek = getWeekNumber(now);
 
       if (player.lastWeeklyRewardAt) {
         const lastReward = new Date(player.lastWeeklyRewardAt);
@@ -188,16 +210,24 @@ router.post("/", async (req, res) => {
         }
       }
 
-      if (weeklyMission.completed) {
-        updateFields["weeklyMission.current"] = weeklyMission.current;
-        updateFields["weeklyMission.completed"] = weeklyMission.completed;
-        updateFields.lastWeeklyRewardAt = now;
+      if (weeklyMission?.completed) {
         const WEEKLY_BONUS = 10000;
-        incFields.balance = (incFields.balance || 0) + WEEKLY_BONUS;
-
-        if (incFields["weeklyMission.current"]) {
-          delete incFields["weeklyMission.current"];
+      
+        // Защита от повторного начисления награды
+        if (!player.weeklyMission?.completed) {
+          console.log("🎁 Награда за недельную миссию выдана");
+      
+          updateFields["weeklyMission.completed"] = true;
+          updateFields.lastWeeklyRewardAt = now;
+          incFields.balance = (incFields.balance || 0) + WEEKLY_BONUS;
+        } else {
+          console.log("⛔ Награда уже получена ранее — игнорируем повтор");
+          // Если completed уже true, ничего не делаем
         }
+      
+        // Удаляем любые попытки вручную подменить прогресс
+        delete updateFields["weeklyMission.current"];
+        delete incFields["weeklyMission.current"];
       }
     }
 
@@ -226,7 +256,8 @@ router.post("/", async (req, res) => {
     console.error("❌ Ошибка сохранения игрока:", err);
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
   }
-});
+  }
+);
 
 
 module.exports = router;
