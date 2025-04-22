@@ -103,10 +103,10 @@ router.post("/", async (req, res) => {
     if (typeof partnerSubscribed !== "undefined") updateFields.partnerSubscribed = partnerSubscribed;
 
     if (typeof balanceBonus === "number" && balanceBonus > 0) {
+      console.log("✅ Обнаружен balanceBonus:", balanceBonus);
       incFields.balance = balanceBonus;
-    
       // ✅ Прогресс увеличиваем, если миссия не завершена
-      if (!player.weeklyMission?.completed) {
+    if (!player.weeklyMission?.completed) {
         incFields["weeklyMission.current"] = balanceBonus;
       }
     }
@@ -128,6 +128,10 @@ router.post("/", async (req, res) => {
           update["weeklyMission.current"] = (referrer.weeklyMission?.current || 0) + wholeCoins;
           update.referralEarnings = (referrer.referralEarnings || 0) + wholeCoins;
         }
+        console.log("📦 Финальный updateQuery:", {
+          $set: updateFields,
+          $inc: incFields,
+        });
     
         await Player.updateOne({ telegramId: referrer.telegramId }, { $set: update });
     
