@@ -109,6 +109,9 @@ router.post("/", async (req, res) => {
     if (!player.weeklyMission?.completed) {
         incFields["weeklyMission.current"] = balanceBonus;
       }
+      if (player.dailyTasks && typeof player.dailyTasks.dailyTaps === "number") {
+        updateFields["dailyTasks.dailyTaps"] = player.dailyTasks.dailyTaps + balanceBonus;
+      }
     }
     
     // === Начисление 10% бонуса пригласившему ===
