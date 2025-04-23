@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Player = require("../models/Player");
 const Fund = require("../models/Fund");
-const authMiddleware = require("../middleware/adminAuth");
+const authMiddleware = require("../middleware/checkAdmin");
 
 // 🔒 Применяем защиту ко всем admin-маршрутам
 router.use(authMiddleware);
