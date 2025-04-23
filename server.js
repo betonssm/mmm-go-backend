@@ -6,7 +6,6 @@ const cron = require("node-cron");
 const Player = require("./models/Player");
 const Fund = require('./models/Fund');
 const fundRoutes = require('./routes/fund');
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -19,6 +18,9 @@ app.use("/plisio", plisioRoutes);
 // Игровые маршруты
 const playerRoutes = require("./routes/player");
 app.use("/player", playerRoutes);
+const adminRoutes = require("./routes/admin");
+app.use("/admin", adminRoutes);
+
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
