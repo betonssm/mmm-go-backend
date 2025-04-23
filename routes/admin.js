@@ -37,7 +37,7 @@ router.post("/reset-missions", async (req, res) => {
 router.get("/overview", async (req, res) => {
   const totalPlayers = await Player.countDocuments();
   const fund = await Fund.findOne();
-  const players = await Player.find({}, { telegramId: 1, playerName: 1, balance: 1, level: 1, isInvestor: 1, srRating: 1 });
+  const players = await Player.find({}, { telegramId: 1, playerName: 1, balance: 1, level: 1, isInvestor: 1, srRating: 1, premiumExpires: 1, });
   res.json({ totalPlayers, fundTotal: fund?.total || 0, players });
 });
 
