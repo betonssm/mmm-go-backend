@@ -151,6 +151,7 @@ if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
         console.log("🧩 incFields после balanceBonus:", incFields);
       }
     }
+  
     
     // === Начисление 10% бонуса пригласившему ===
     if (player.refSource && balanceBonus > 0) {
@@ -210,37 +211,26 @@ if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
       const lastWeek = player.lastWeeklyRewardAt ? getWeekNumber(new Date(player.lastWeeklyRewardAt)) : null;
 const currWeek = getWeekNumber(now);
 
-      if (player.lastWeeklyRewardAt) {
-        const lastReward = new Date(player.lastWeeklyRewardAt);
-        const sameYear = lastReward.getFullYear() === now.getFullYear();
-        const sameWeek = getWeekNumber(lastReward) === getWeekNumber(now);
+if (weeklyMission?.completed) {
+  const WEEKLY_BONUS = 10000;
 
-        if (sameYear && sameWeek) {
-          console.log("⛔ Недельная награда уже выдана в этом цикле");
-          return res.status(400).json({ error: "Награда за неделю уже получена" });
-        }
-      }
+  const lastReward = player.lastWeeklyRewardAt ? new Date(player.lastWeeklyRewardAt) : null;
+  const sameWeek = lastReward && getWeekNumber(lastReward) === getWeekNumber(now);
 
-      if (weeklyMission?.completed) {
-        const WEEKLY_BONUS = 10000;
-      
-        // Защита от повторного начисления награды
-        if (!player.weeklyMission?.completed) {
-          console.log("🎁 Награда за недельную миссию выдана");
-      
-          updateFields["weeklyMission.completed"] = true;
-          updateFields.lastWeeklyRewardAt = now;
-          incFields.balance = (incFields.balance || 0) + WEEKLY_BONUS;
-        } else {
-          console.log("⛔ Награда уже получена ранее — игнорируем повтор");
-          // Если completed уже true, ничего не делаем
-        }
-      
-        // Удаляем любые попытки вручную подменить прогресс
-        delete updateFields["weeklyMission.current"];
-        delete incFields["weeklyMission.current"];
-      }
-    }
+  if (!sameWeek) {
+    console.log("🎁 Награда за недельную миссию выдана");
+    updateFields["weeklyMission.completed"] = true;
+    updateFields.lastWeeklyRewardAt = now;
+    incFields.balance = (incFields.balance || 0) + WEEKLY_BONUS;
+  } else {
+    console.log("⛔ Награда уже получена ранее — игнорируем повтор");
+  }
+
+  // Защита от ручной подмены weeklyMission.current
+  delete updateFields["weeklyMission.current"];
+  delete incFields["weeklyMission.current"];
+}
+}
 
     if (typeof srRating !== "undefined") {
       const active = player.isInvestor && player.premiumExpires && now < player.premiumExpires && player.srActiveSince && now >= player.srActiveSince;
