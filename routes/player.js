@@ -256,7 +256,10 @@ if (incFields["dailyTasks.dailyTaps"]) {
       { new: true }
     );
 
-    res.json(updated);
+    res.json({
+      ...player.toObject(),
+      refSourceSaved: player.refSource !== null,
+    });
   } catch (err) {
     console.error("❌ Ошибка сохранения игрока:", err);
     res.status(500).json({ error: "Ошибка сохранения игрока", details: err });
