@@ -9,7 +9,7 @@ router.use(authMiddleware);
 
 // Список всех игроков
 router.get("/players", async (req, res) => {
-  const players = await Player.find({}, { playerName: 1, balance: 1, isInvestor: 1, level: 1, srRating: 1, telegramId: 1 });
+  const players = await Player.find({}, { playerName: 1, balance: 1, isInvestor: 1, level: 1, srRating: 1, telegramId: 1, premiumExpires: 1, });
   res.json(players);
 });
 
