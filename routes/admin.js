@@ -22,16 +22,19 @@ router.get("/player/:telegramId", async (req, res) => {
 });
 
 // Принудительный сброс всех миссий
-router.post("/reset-missions", async (req, res) => {
-  await Player.updateMany({}, {
-    $set: {
-      "weeklyMission.current": 0,
-      "weeklyMission.completed": false,
-      "dailyTasks.dailyTaps": 0,
-      "dailyTasks.rewardReceived": false,
-    }
-  });
-  res.json({ status: "Миссии сброшены" });
+router.post("/reset-missions/:telegramId", async (req, res) => {
+  const { telegramId } = req.params;
+
+  const player = await Player.findOne({ telegramId });
+  if (!player) return res.status(404).json({ error: "Игрок не найден" });
+
+  player.weeklyMission = { mavrodikGoal: 100000, current: 0, completed: false };
+  player.dailyTasks = { dailyTaps: 0, dailyTarget: 5000, rewardReceived: false };
+  player.adsWatched = 0;
+
+  await player.save();
+
+  res.json({ status: `Миссии сброшены для ${telegramId}` });
 });
 
 // Статистика по игрокам и фонду
