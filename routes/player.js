@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Player = require("../models/Player");
+const Log = require("../models/Log"); // в самом верху файла
 
 // GET /player/count - общее количество игроков
 router.get("/count", async (req, res) => {
@@ -86,6 +87,13 @@ router.post("/", async (req, res) => {
 
   try {
     const player = await Player.findOne({ telegramId });
+    // 🪵 Логируем действие игрока
+await Log.create({
+  type: "player",
+  message: "Обновление данных игрока",
+  playerId: telegramId,
+  data: req.body,
+});
     console.log("📥 Получены данные игрока (POST):", req.body);
     console.log("🧪 Игрок из базы:", {
       weeklyMission: player.weeklyMission,
