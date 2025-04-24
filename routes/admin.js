@@ -34,7 +34,13 @@ router.post("/reset-missions/:telegramId", async (req, res) => {
 
   await player.save();
 
-  res.json({ status: `Миссии сброшены для ${telegramId}` });
+  if (updated.modifiedCount > 0) {
+    console.log(`🧹 Миссии сброшены для игрока ${telegramId}`);
+    res.json({ status: `Миссии сброшены для игрока ${telegramId}` });
+  } else {
+    console.warn(`⚠️ Не удалось сбросить миссии — игрок ${telegramId} не найден`);
+    res.status(404).json({ error: "Игрок не найден или не изменён" });
+  }
 });
 
 // Статистика по игрокам и фонду
