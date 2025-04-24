@@ -53,7 +53,7 @@ router.get("/overview", async (req, res) => {
 });
 // Получение логов
 router.get("/logs", async (req, res) => {
-  const logs = await Log.find().sort({ timestamp: -1 }).limit(100);
+  const logs = await Log.find().sort({ timestamp: -1 }).limit(300);
   res.json(logs);
 });
 
