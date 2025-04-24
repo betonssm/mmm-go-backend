@@ -42,6 +42,23 @@ router.post("/reset-missions/:telegramId", async (req, res) => {
     res.status(404).json({ error: "Игрок не найден или не изменён" });
   }
 });
+router.get("/analytics", async (req, res) => {
+  const totalPlayers = await Player.countDocuments();
+  const fund = await Fund.findOne();
+  const investors = await Player.countDocuments({ isInvestor: true });
+
+  const players = await Player.find({});
+  const averageBalance = players.reduce((sum, p) => sum + (p.balance || 0), 0) / players.length;
+  const averageSR = players.reduce((sum, p) => sum + (p.srRating || 0), 0) / players.length;
+
+  res.json({
+    totalPlayers,
+    fundTotal: fund?.total || 0,
+    investors,
+    averageBalance: Math.round(averageBalance),
+    averageSR: Math.round(averageSR),
+  });
+});
 
 // Статистика по игрокам и фонду
 router.get("/overview", async (req, res) => {
