@@ -51,5 +51,10 @@ router.get("/overview", async (req, res) => {
     refSource: 1, paymentsCount: 1, });
   res.json({ totalPlayers, fundTotal: fund?.total || 0, players });
 });
+// Получение логов
+router.get("/logs", async (req, res) => {
+  const logs = await Log.find().sort({ timestamp: -1 }).limit(100);
+  res.json(logs);
+});
 
 module.exports = router;
