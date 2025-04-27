@@ -274,6 +274,35 @@ if (incFields["dailyTasks.dailyTaps"]) {
   }
   }
 );
+// POST /player/set-ref
+router.post("/set-ref", async (req, res) => {
+  try {
+    const { telegramId, refSource } = req.body;
+
+    if (!telegramId || !refSource) {
+      return res.status(400).json({ error: "Недостаточно данных" });
+    }
+
+    const player = await Player.findOne({ telegramId });
+
+    if (!player) {
+      return res.status(404).json({ error: "Игрок не найден" });
+    }
+
+    if (!player.refSource) {
+      player.refSource = refSource;
+      await player.save();
+      console.log(`🔗 refSource ${refSource} установлен игроку ${telegramId}`);
+      res.json({ success: true });
+    } else {
+      console.log(`ℹ️ Игрок ${telegramId} уже имеет refSource (${player.refSource})`);
+      res.json({ success: false, message: "Уже установлен" });
+    }
+  } catch (error) {
+    console.error("❌ Ошибка в /player/set-ref:", error);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
 
 
 module.exports = router;
