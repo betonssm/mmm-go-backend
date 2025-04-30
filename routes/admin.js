@@ -59,6 +59,29 @@ router.get("/analytics", async (req, res) => {
     averageSR: Math.round(averageSR),
   });
 });
+router.get("/sr-stats", verifyAdmin, async (req, res) => {
+  try {
+    const all = await Player.find({
+      srRating: { $gt: 0 },
+      isInvestor: true,
+      premiumExpires: { $gt: new Date() }
+    }).sort({ srRating: -1 });
+
+    const top10Count = Math.ceil(all.length * 0.1);
+    const top10 = all.slice(0, top10Count);
+    const totalTopSr = top10.reduce((sum, p) => sum + p.srRating, 0);
+
+    res.json({
+      totalPlayers: all.length,
+      top10Count,
+      totalTopSr,
+      players: all
+    });
+  } catch (err) {
+    console.error("Ошибка получения SR статистики:", err);
+    res.status(500).json({ error: "Ошибка получения SR статистики" });
+  }
+});
 
 // Статистика по игрокам и фонду
 router.get("/overview", async (req, res) => {
