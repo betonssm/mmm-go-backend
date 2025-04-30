@@ -59,7 +59,7 @@ router.get("/analytics", async (req, res) => {
     averageSR: Math.round(averageSR),
   });
 });
-router.get("/sr-stats", async (req, res) =>  {
+router.get("/sr-stats", async (req, res) => {
   try {
     const all = await Player.find({
       srRating: { $gt: 0 },
@@ -67,15 +67,30 @@ router.get("/sr-stats", async (req, res) =>  {
       premiumExpires: { $gt: new Date() }
     }).sort({ srRating: -1 });
 
-    const top10Count = Math.ceil(all.length * 0.1);
-    const top10 = all.slice(0, top10Count);
-    const totalTopSr = top10.reduce((sum, p) => sum + p.srRating, 0);
+    const totalCount = all.length;
+    const top1Count = Math.ceil(totalCount * 0.01);
+    const top5Count = Math.ceil(totalCount * 0.05);
+    const top10Count = Math.ceil(totalCount * 0.10);
+
+    const top1 = all.slice(0, top1Count);
+    const top5 = all.slice(top1Count, top5Count);
+    const top10 = all.slice(top5Count, top10Count);
+
+    const sumSR = (list) => list.reduce((sum, p) => sum + p.srRating, 0);
+
+    const totalTopSR = sumSR(top1) + sumSR(top5) + sumSR(top10);
 
     res.json({
-      totalPlayers: all.length,
-      top10Count,
-      totalTopSr,
-      players: all
+      totalPlayers: totalCount,
+      top1: top1.map(p => ({ ...p.toObject(), group: "1%" })),
+      top5: top5.map(p => ({ ...p.toObject(), group: "2-5%" })),
+      top10: top10.map(p => ({ ...p.toObject(), group: "6-10%" })),
+      srSummary: {
+        top1: sumSR(top1),
+        top5: sumSR(top5),
+        top10: sumSR(top10),
+        totalTopSR
+      }
     });
   } catch (err) {
     console.error("Ошибка получения SR статистики:", err);
