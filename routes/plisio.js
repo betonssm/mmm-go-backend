@@ -83,19 +83,19 @@ router.post("/callback", async (req, res) => {
   };
 
   if (!player.isInvestor) {
-    const expires = new Date(now);
-    expires.setDate(expires.getDate() + 30);
-    const srStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0); // конец след. месяца
+  
     update.$set = {
       isInvestor: true,
       premiumSince: now,
-      premiumExpires: expires,
-      srActiveSince: srStart,
+      premiumExpires: endOfNextMonth,
+      srActiveSince: startOfNextMonth,
       srRating: 0
     };
-
-    console.log(`🌟 Игрок ${telegramId} стал инвестором до ${expires.toISOString()}`);
+  
+    console.log(`🌟 Подписка активна до ${endOfNextMonth.toISOString()}, SR с ${startOfNextMonth.toISOString()}`);
+    console.log(`🌟 Игрок ${telegramId} стал инвестором до ${endOfNextMonth.toISOString()}`);
   } else {
     console.log(`➕ Игрок ${telegramId} докупил 50000 мавродиков`);
   }
