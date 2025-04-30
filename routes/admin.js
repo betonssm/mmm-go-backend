@@ -59,7 +59,7 @@ router.get("/analytics", async (req, res) => {
     averageSR: Math.round(averageSR),
   });
 });
-router.get("/sr-stats", verifyAdmin, async (req, res) => {
+router.get("/sr-stats", async (req, res) =>  {
   try {
     const all = await Player.find({
       srRating: { $gt: 0 },
