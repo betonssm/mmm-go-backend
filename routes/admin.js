@@ -111,5 +111,39 @@ router.get("/logs", async (req, res) => {
   const logs = await Log.find().sort({ timestamp: -1 }).limit(300);
   res.json(logs);
 });
+router.get("/analytics", authMiddleware, async (req, res) => {
+  try {
+    const [
+      totalPlayers,
+      totalReferrals,
+      activeSubs,
+      topups,
+      dailyMissions,
+      weeklyMissions,
+      richPlayers
+    ] = await Promise.all([
+      Player.countDocuments(),
+      Player.countDocuments({ referrals: { $gt: 0 } }),
+      Player.countDocuments({ premiumExpires: { $gt: new Date() } }),
+      Player.countDocuments({ topupCount: { $gt: 0 } }),
+      Player.countDocuments({ "dailyTasks.claimed": true }),
+      Player.countDocuments({ "weeklyMission.claimed": true }),
+      Player.countDocuments({ balance: { $gte: 5000000 } })
+    ]);
+
+    res.json({
+      totalPlayers,
+      totalReferrals,
+      activeSubs,
+      topups,
+      dailyMissions,
+      weeklyMissions,
+      richPlayers
+    });
+  } catch (err) {
+    console.error("Ошибка аналитики:", err);
+    res.status(500).json({ error: "Ошибка получения аналитики" });
+  }
+});
 
 module.exports = router;
