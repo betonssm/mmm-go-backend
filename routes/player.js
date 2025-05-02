@@ -306,7 +306,9 @@ router.post("/set-ref", async (req, res) => {
 router.post("/player/claim-prize", async (req, res) => {
   const { telegramId, prizeAmount } = req.body;
 
-  if (!telegramId || !prizeAmount) return res.status(400).json({ error: "Недостаточно данных" });
+  if (!telegramId || typeof prizeAmount !== "number") {
+    return res.status(400).json({ error: "Недостаточно данных" });
+  }
 
   const player = await Player.findOne({ telegramId });
   if (!player) return res.status(404).json({ error: "Игрок не найден" });
@@ -318,13 +320,19 @@ router.post("/player/claim-prize", async (req, res) => {
     return res.status(400).json({ error: "Вы уже получали приз сегодня" });
   }
 
+  // Прибавляем приз к балансу
   player.balance += prizeAmount;
+
+  // Обновим только недельную миссию (дневную мы не трогаем)
+  if (player.weeklyMission && !player.weeklyMission.completed) {
+    player.weeklyMission.current += prizeAmount;
+  }
+
+  // Обновляем дату последнего розыгрыша
   player.lastPrizeAt = now;
 
-  // Обновим дневные и недельные миссии
-  player.weeklyMission.current += prizeAmount;
-
   await player.save();
+
   res.json({ success: true, newBalance: player.balance });
 });
 
