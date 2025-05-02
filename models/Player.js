@@ -67,6 +67,7 @@ const playerSchema = new mongoose.Schema({
   balanceBonus:      { type: Number, default: 0 },
   lastDailyRewardAt: { type: Date,   default: null },
   lastWeeklyRewardAt:{ type: Date,   default: null },
+  lastPrizeAt: { type: Date, default: null },
 
 }, { timestamps: true });
 

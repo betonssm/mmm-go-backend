@@ -303,6 +303,31 @@ router.post("/set-ref", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
+router.post("/player/claim-prize", async (req, res) => {
+  const { telegramId, prizeAmount } = req.body;
+
+  if (!telegramId || !prizeAmount) return res.status(400).json({ error: "Недостаточно данных" });
+
+  const player = await Player.findOne({ telegramId });
+  if (!player) return res.status(404).json({ error: "Игрок не найден" });
+
+  const now = new Date();
+  const lastClaim = player.lastPrizeAt;
+
+  if (lastClaim && lastClaim.toDateString() === now.toDateString()) {
+    return res.status(400).json({ error: "Вы уже получали приз сегодня" });
+  }
+
+  player.balance += prizeAmount;
+  player.lastPrizeAt = now;
+
+  // Обновим дневные и недельные миссии
+  player.dailyTasks.dailyTaps += prizeAmount;
+  player.weeklyMission.current += prizeAmount;
+
+  await player.save();
+  res.json({ success: true, newBalance: player.balance });
+});
 
 
 module.exports = router;
