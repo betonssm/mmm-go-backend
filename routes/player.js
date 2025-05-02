@@ -322,7 +322,6 @@ router.post("/player/claim-prize", async (req, res) => {
   player.lastPrizeAt = now;
 
   // Обновим дневные и недельные миссии
-  player.dailyTasks.dailyTaps += prizeAmount;
   player.weeklyMission.current += prizeAmount;
 
   await player.save();
