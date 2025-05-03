@@ -59,44 +59,6 @@ router.get("/analytics", async (req, res) => {
     averageSR: Math.round(averageSR),
   });
 });
-router.get("/sr-stats", async (req, res) => {
-  try {
-    const all = await Player.find({
-      srRating: { $gt: 0 },
-      isInvestor: true,
-      premiumExpires: { $gt: new Date() }
-    }).sort({ srRating: -1 });
-
-    const totalCount = all.length;
-    const top1Count = Math.ceil(totalCount * 0.01);
-    const top5Count = Math.ceil(totalCount * 0.05);
-    const top10Count = Math.ceil(totalCount * 0.10);
-
-    const top1 = all.slice(0, top1Count);
-    const top5 = all.slice(top1Count, top5Count);
-    const top10 = all.slice(top5Count, top10Count);
-
-    const sumSR = (list) => list.reduce((sum, p) => sum + p.srRating, 0);
-
-    const totalTopSR = sumSR(top1) + sumSR(top5) + sumSR(top10);
-
-    res.json({
-      totalPlayers: totalCount,
-      top1: top1.map(p => ({ ...p.toObject(), group: "1%" })),
-      top5: top5.map(p => ({ ...p.toObject(), group: "2-5%" })),
-      top10: top10.map(p => ({ ...p.toObject(), group: "6-10%" })),
-      srSummary: {
-        top1: sumSR(top1),
-        top5: sumSR(top5),
-        top10: sumSR(top10),
-        totalTopSR
-      }
-    });
-  } catch (err) {
-    console.error("Ошибка получения SR статистики:", err);
-    res.status(500).json({ error: "Ошибка получения SR статистики" });
-  }
-});
 
 // Статистика по игрокам и фонду
 router.get("/overview", async (req, res) => {
