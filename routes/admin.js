@@ -145,5 +145,54 @@ router.get("/analytics", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Ошибка получения аналитики" });
   }
 });
+router.get('/sr-stats', async (req, res) => {
+  try {
+    const fundDoc = await Fund.findOne({});
+    const fundUSDT = fundDoc?.total || 0;
+
+    const allInvestors = await Player.find({
+      isInvestor: true,
+      premiumExpires: { $gt: new Date() },
+      srRating: { $gt: 0 }
+    });
+
+    const sorted = allInvestors.sort((a, b) => b.srRating - a.srRating);
+    const totalCount = sorted.length;
+
+    const top1Count = Math.max(1, Math.floor(totalCount * 0.01));
+    const top5Count = Math.max(1, Math.floor(totalCount * 0.05)) - top1Count;
+    const top10Count = Math.max(1, Math.floor(totalCount * 0.10)) - top5Count - top1Count;
+
+    const top1 = sorted.slice(0, top1Count);
+    const top5 = sorted.slice(top1Count, top1Count + top5Count);
+    const top10 = sorted.slice(top1Count + top5Count, top1Count + top5Count + top10Count);
+
+    const fund1 = fundUSDT * 0.30;
+    const fund5 = fundUSDT * 0.35;
+    const fund10 = fundUSDT * 0.35;
+
+    const formatPlayers = (group, list, payoutPerUser) => {
+      return list.map(player => ({
+        telegramId: player.telegramId,
+        playerName: player.playerName,
+        srRating: player.srRating,
+        walletAddressTRC20: player.walletAddressTRC20 || null,
+        group,
+        usdtPayout: Number(payoutPerUser.toFixed(2))
+      }));
+    };
+
+    const result = [
+      ...formatPlayers('1%', top1, fund1 / top1.length),
+      ...formatPlayers('2-5%', top5, fund5 / top5.length),
+      ...formatPlayers('6-10%', top10, fund10 / top10.length)
+    ];
+
+    res.json({ total: fundUSDT, topPlayers: result });
+  } catch (err) {
+    console.error('Ошибка в /admin/sr-stats:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
 
 module.exports = router;
