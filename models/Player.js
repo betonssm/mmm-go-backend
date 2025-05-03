@@ -68,6 +68,7 @@ const playerSchema = new mongoose.Schema({
   lastDailyRewardAt: { type: Date,   default: null },
   lastWeeklyRewardAt:{ type: Date,   default: null },
   lastPrizeAt: { type: Date, default: null },
+  walletAddressTRC20: { type: String, default: null },
 
 }, { timestamps: true });
 
