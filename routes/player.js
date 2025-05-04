@@ -200,16 +200,7 @@ if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
       if (dailyTasks.rewardReceived && lastDaily !== today) {
         updateFields["dailyTasks.rewardReceived"] = true;
         updateFields.lastDailyRewardAt = now;
-    
-        // ⚠️ Убираем double-бонус: если balanceBonus уже 5000, не дублируем
-        if (!(typeof balanceBonus === "number" && balanceBonus === DAILY_BONUS)) {
-          incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
-          if (!player.weeklyMission?.completed) {
-            incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + DAILY_BONUS;
-          }
-        }
-      }
-    }
+        incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
 
     if (weeklyMission) {
     const getWeekNumber = date => {
