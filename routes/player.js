@@ -201,7 +201,8 @@ if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
         updateFields["dailyTasks.rewardReceived"] = true;
         updateFields.lastDailyRewardAt = now;
         incFields.balance = (incFields.balance || 0) + DAILY_BONUS;
-
+      }
+    } 
     if (weeklyMission) {
     const getWeekNumber = date => {
         const oneJan = new Date(date.getFullYear(), 0, 1);
