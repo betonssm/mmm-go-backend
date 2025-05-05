@@ -3,6 +3,18 @@ const router = express.Router();
 const Player = require("../models/Player");
 const Log = require("../models/Log"); // в самом верху файла
 const Config = require("../models/Config");
+// Публичный маршрут для WebApp — проверка статуса
+router.get("/status", async (req, res) => {
+  try {
+    const config = await Config.findOne();
+    console.log("CONFIG:", config); // ← проверь вывод
+    const maintenance = config?.maintenanceMode || false;
+    res.json({ maintenance });
+  } catch (err) {
+    console.error("Ошибка получения статуса:", err);
+    res.status(500).json({ maintenance: false });
+  }
+});
 
 // GET /player/count - общее количество игроков
 router.get("/count", async (req, res) => {
@@ -361,18 +373,7 @@ router.post("/wallet", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
-// Публичный маршрут для WebApp — проверка статуса
-router.get("/status", async (req, res) => {
-  try {
-    const config = await Config.findOne();
-    console.log("CONFIG:", config); // ← проверь вывод
-    const maintenance = config?.maintenanceMode || false;
-    res.json({ maintenance });
-  } catch (err) {
-    console.error("Ошибка получения статуса:", err);
-    res.status(500).json({ maintenance: false });
-  }
-});
+
 
 
 module.exports = router;
