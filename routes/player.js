@@ -365,6 +365,7 @@ router.post("/wallet", async (req, res) => {
 router.get("/status", async (req, res) => {
   try {
     const config = await Config.findOne();
+    console.log("CONFIG:", config); // ← проверь вывод
     const maintenance = config?.maintenanceMode || false;
     res.json({ maintenance });
   } catch (err) {
