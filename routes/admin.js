@@ -4,6 +4,7 @@ const Player = require("../models/Player");
 const Fund = require("../models/Fund");
 const authMiddleware = require("../middleware/checkAdmin");
 const Log = require("../models/Log");
+const Config = require("../models/Config");
 // 🔒 Применяем защиту ко всем admin-маршрутам
 router.use(authMiddleware);
 
@@ -156,5 +157,21 @@ router.get('/sr-stats', async (req, res) => {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
+// Получить состояние технических работ
+router.get("/maintenance", async (req, res) => {
+  const config = await Config.findOne() || new Config();
+  res.json({ maintenanceMode: config.maintenanceMode });
+});
+
+// Изменить состояние технических работ
+router.post("/maintenance", async (req, res) => {
+  const { maintenanceMode } = req.body;
+  let config = await Config.findOne();
+  if (!config) config = new Config();
+  config.maintenanceMode = !!maintenanceMode;
+  await config.save();
+  res.json({ success: true, maintenanceMode: config.maintenanceMode });
+});
+
 
 module.exports = router;
