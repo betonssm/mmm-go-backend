@@ -7,6 +7,8 @@ const Player = require("./models/Player");
 const Fund = require('./models/Fund');
 const fundRoutes = require('./routes/fund');
 const app = express();
+
+
 app.use(cors());
 app.use(express.json());
 app.use('/fund', fundRoutes);

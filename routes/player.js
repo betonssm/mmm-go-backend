@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Player = require("../models/Player");
 const Log = require("../models/Log"); // в самом верху файла
+const Config = require("../models/Config");
 
 // GET /player/count - общее количество игроков
 router.get("/count", async (req, res) => {
@@ -358,6 +359,17 @@ router.post("/wallet", async (req, res) => {
   } catch (error) {
     console.error("❌ Ошибка при сохранении адреса TRC20:", error);
     res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+// Публичный маршрут для WebApp — проверка статуса
+router.get("/status", async (req, res) => {
+  try {
+    const config = await Config.findOne();
+    const maintenance = config?.maintenanceMode || false;
+    res.json({ maintenance });
+  } catch (err) {
+    console.error("Ошибка получения статуса:", err);
+    res.status(500).json({ maintenance: false });
   }
 });
 
