@@ -60,8 +60,9 @@ router.post("/callback", async (req, res) => {
     return res.sendStatus(200);
   }
 
-  const telegramId = parseInt(order_number);
-  const BONUS = 50000;
+  // Определим тип заказа
+  const isBalancePurchase = order_number.includes("_buyMavro");
+  const telegramId = parseInt(order_number.split("_")[0]); // извлекаем ID
 
   const player = await Player.findOne({ telegramId });
   if (!player) {
@@ -69,6 +70,7 @@ router.post("/callback", async (req, res) => {
     return res.sendStatus(404);
   }
 
+  const BONUS = 50000;
   const now = new Date();
   const usdtIncrement = parseFloat(source_amount) * 0.6 || 6;
 
@@ -84,8 +86,8 @@ router.post("/callback", async (req, res) => {
 
   if (!player.isInvestor) {
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0); // конец след. месяца
-  
+    const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+
     update.$set = {
       isInvestor: true,
       premiumSince: now,
@@ -93,16 +95,15 @@ router.post("/callback", async (req, res) => {
       srActiveSince: startOfNextMonth,
       srRating: 0
     };
-  
+
     console.log(`🌟 Подписка активна до ${endOfNextMonth.toISOString()}, SR с ${startOfNextMonth.toISOString()}`);
-    console.log(`🌟 Игрок ${telegramId} стал инвестором до ${endOfNextMonth.toISOString()}`);
+    console.log(`🌟 Игрок ${telegramId} стал инвестором`);
   } else {
-    console.log(`➕ Игрок ${telegramId} докупил 50000 мавродиков`);
+    console.log(`➕ Игрок ${telegramId} докупил 50 000 мавродиков`);
   }
 
   await Player.updateOne({ telegramId }, update);
-
-  res.sendStatus(200);
+  return res.sendStatus(200);
 });
 
 // 🔹 Новый маршрут: создание платежа для покупки 50 000 мавродиков
