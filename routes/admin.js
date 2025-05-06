@@ -172,6 +172,36 @@ router.post("/maintenance", async (req, res) => {
   await config.save();
   res.json({ success: true, maintenanceMode: config.maintenanceMode });
 });
+// POST /admin/add-balance
+router.post("/add-balance", async (req, res) => {
+  const { telegramId, amount } = req.body;
+
+  if (!telegramId || !amount || isNaN(amount)) {
+    return res.status(400).json({ error: "Неверные параметры" });
+  }
+
+  try {
+    const result = await Player.updateOne(
+      { telegramId },
+      {
+        $inc: {
+          balance: amount,
+          "weeklyMission.current": amount,
+          "dailyTasks.dailyTaps": amount,
+        },
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: "Игрок не найден" });
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Ошибка при добавлении баланса:", err);
+    return res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
 
 
 module.exports = router;
