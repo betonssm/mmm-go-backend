@@ -373,6 +373,10 @@ router.post("/wallet", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
+router.post("/log-init", (req, res) => {
+  console.log("📦 initData получено из WebApp:", req.body);
+  res.sendStatus(200);
+});
 
 
 
