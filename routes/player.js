@@ -130,13 +130,19 @@ if (player.lastWeeklyRewardAt && new Date(player.lastWeeklyRewardAt) < weekStart
   await player.save();
 }
 
-// ☀️ Сброс дневной награды (если новый день)
+// ☀️ Сброс дневных заданий, рекламы и награды
 const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
 const today = now.toDateString();
 
-if (lastDaily !== today && player.dailyTasks?.rewardReceived) {
-  console.log("☀️ Новый день — сбрасываем dailyTasks.rewardReceived");
-  player.dailyTasks.rewardReceived = false;
+if (lastDaily !== today) {
+  console.log("☀️ Новый день — сбрасываем dailyTasks, adsWatched и rewardReceived");
+  player.dailyTasks = {
+    dailyTaps: 0,
+    dailyTarget: 5000,
+    rewardReceived: false,
+  };
+  player.adsWatched = 0;
+  player.lastDailyRewardAt = now;
   await player.save();
 }
     const updateFields = {};
