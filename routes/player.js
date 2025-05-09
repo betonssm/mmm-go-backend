@@ -146,6 +146,19 @@ if (lastDaily !== today) {
 }
     const updateFields = {};
     const incFields = {};
+if (
+  dailyTasks?.rewardReceived === true &&
+  lastDaily !== today
+) {
+  console.log("🎁 Выдаём бонус за ежедневное задание");
+  updateFields["dailyTasks.rewardReceived"] = true;
+  updateFields.lastDailyRewardAt = now;
+  incFields.balance = (incFields.balance || 0) + 5000;
+
+  if (!player.weeklyMission?.completed) {
+    incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + 5000;
+  }
+}
     console.log("→ [player] до обработки: ", { updateFields, incFields });
 
     if (playerName) updateFields.playerName = playerName;
@@ -208,16 +221,6 @@ if (lastDaily !== today) {
         }
       }
     }
-
-if (dailyTasks?.rewardReceived === true && player.dailyTasks?.rewardReceived === false) {
-  console.log("🎁 Выдаём бонус за ежедневное задание");
-  updateFields["dailyTasks.rewardReceived"] = true;
-  updateFields.lastDailyRewardAt = now;
-  incFields.balance = (incFields.balance || 0) + 5000;
-  if (!player.weeklyMission?.completed) {
-    incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + 5000;
-}
-}
     if (weeklyMission) {
     const getWeekNumber = date => {
         const oneJan = new Date(date.getFullYear(), 0, 1);
