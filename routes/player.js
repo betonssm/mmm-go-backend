@@ -210,17 +210,10 @@ if (lastDaily !== today) {
     }
 
 if (dailyTasks?.rewardReceived === true && player.dailyTasks?.rewardReceived === false) {
-  const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
-  const today = now.toDateString();
-
-  if (lastDaily !== today) {
-    console.log("🎁 Выдаём бонус за ежедневное задание");
-    updateFields["dailyTasks.rewardReceived"] = true;
-    updateFields.lastDailyRewardAt = now;
-    incFields.balance = (incFields.balance || 0) + 5000;
-  } else {
-    console.log("⛔ Уже получен бонус сегодня — игнор");
-  }
+  console.log("🎁 Выдаём бонус за ежедневное задание");
+  updateFields["dailyTasks.rewardReceived"] = true;
+  updateFields.lastDailyRewardAt = now;
+  incFields.balance = (incFields.balance || 0) + 5000;
 }
     if (weeklyMission) {
     const getWeekNumber = date => {
