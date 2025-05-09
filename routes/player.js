@@ -214,6 +214,9 @@ if (dailyTasks?.rewardReceived === true && player.dailyTasks?.rewardReceived ===
   updateFields["dailyTasks.rewardReceived"] = true;
   updateFields.lastDailyRewardAt = now;
   incFields.balance = (incFields.balance || 0) + 5000;
+  if (!player.weeklyMission?.completed) {
+    incFields["weeklyMission.current"] = (incFields["weeklyMission.current"] || 0) + 5000;
+}
 }
     if (weeklyMission) {
     const getWeekNumber = date => {
