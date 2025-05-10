@@ -148,7 +148,7 @@ if (lastDaily !== today) {
     const incFields = {};
 if (
   dailyTasks?.rewardReceived === true &&
-  lastDaily !== today
+  player.dailyTasks?.rewardReceived === false
 ) {
   console.log("🎁 Выдаём бонус за ежедневное задание");
   updateFields["dailyTasks.rewardReceived"] = true;
