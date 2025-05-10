@@ -125,7 +125,7 @@ if (lastDaily !== today) {
   player.dailyTasks = {
     dailyTaps: 0,
     dailyTarget: 5000,
-    rewardReceived: false,
+   rewardReceived: player.dailyTasks?.rewardReceived || false,
   };
   player.adsWatched = 0;
   player.lastDailyRewardAt = now; // ✅ Важно обновить дату
