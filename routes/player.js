@@ -116,21 +116,7 @@ await Log.create({
     if (!player) return res.status(404).json({ error: "Игрок не найден" });
 
     const now = new Date();
-
-// 📆 Сброс недельной миссии
-const weekStart = new Date(now);
-weekStart.setHours(0, 0, 0, 0);
-weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-
-if (player.lastWeeklyRewardAt && new Date(player.lastWeeklyRewardAt) < weekStart) {
-  console.log("🔄 Новая неделя — сбрасываем weeklyMission");
-  player.weeklyMission.current = 0;
-  player.weeklyMission.completed = false;
-  player.lastWeeklyRewardAt = null;
-  await player.save();
-}
-
-// ☀️ Сброс дневных заданий, рекламы и награды
+    // Проверка на начало нового дня
 const lastDaily = player.lastDailyRewardAt ? new Date(player.lastDailyRewardAt).toDateString() : null;
 const today = now.toDateString();
 
@@ -142,6 +128,19 @@ if (lastDaily !== today) {
     rewardReceived: false,
   };
   player.adsWatched = 0;
+  player.lastDailyRewardAt = now; // ✅ Важно обновить дату
+}
+
+// 📆 Сброс недельной миссии
+const weekStart = new Date(now);
+weekStart.setHours(0, 0, 0, 0);
+weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+if (player.lastWeeklyRewardAt && new Date(player.lastWeeklyRewardAt) < weekStart) {
+  console.log("🔄 Новая неделя — сбрасываем weeklyMission");
+  player.weeklyMission.current = 0;
+  player.weeklyMission.completed = false;
+  player.lastWeeklyRewardAt = null;
   await player.save();
 }
     const updateFields = {};
