@@ -349,21 +349,28 @@ router.post("/player/claim-prize", async (req, res) => {
 
 // POST /player/wallet — сохранение адреса TRC20 кошелька
 router.post("/wallet", async (req, res) => {
-  const { telegramId, walletAddressTRC20 } = req.body;
+  const { telegramId, walletAddressTRC20, tonWallet } = req.body;
 
-  if (!telegramId || !walletAddressTRC20) {
+  if (!telegramId || (!walletAddressTRC20 && !tonWallet)) {
     return res.status(400).json({ error: "Недостаточно данных" });
   }
 
-  // Простая валидация формата TRC20 (начинается с T и длина 34 символа)
-  if (!walletAddressTRC20.startsWith("T") || walletAddressTRC20.length !== 34) {
-    return res.status(400).json({ error: "Неверный формат адреса TRC20" });
+  const updateFields = {};
+  if (walletAddressTRC20) {
+    if (!walletAddressTRC20.startsWith("T") || walletAddressTRC20.length !== 34) {
+      return res.status(400).json({ error: "Неверный формат адреса TRC20" });
+    }
+    updateFields.walletAddressTRC20 = walletAddressTRC20;
+  }
+
+  if (tonWallet) {
+    updateFields.tonWallet = tonWallet;
   }
 
   try {
     const player = await Player.findOneAndUpdate(
       { telegramId },
-      { walletAddressTRC20 },
+      updateFields,
       { new: true }
     );
 
@@ -371,16 +378,12 @@ router.post("/wallet", async (req, res) => {
       return res.status(404).json({ error: "Игрок не найден" });
     }
 
-    console.log(`💳 Кошелёк TRC20 обновлён для ${telegramId}: ${walletAddressTRC20}`);
+    console.log(`💳 Кошельки обновлены для ${telegramId}:`, updateFields);
     res.json({ success: true });
   } catch (error) {
-    console.error("❌ Ошибка при сохранении адреса TRC20:", error);
+    console.error("❌ Ошибка при сохранении кошелька:", error);
     res.status(500).json({ error: "Ошибка сервера" });
   }
-});
-router.post("/log-init", (req, res) => {
-  console.log("📦 initData получено из WebApp:", req.body);
-  res.sendStatus(200);
 });
 
 
