@@ -54,8 +54,8 @@ const txDetailsRes = await axios.get(`https://tonapi.io/v2/blockchain/transactio
 });
 
 const tx = txDetailsRes.data;
-const wallet = tx.incoming_message?.source;
-const amountNano = Number(tx.incoming_message?.value || 0);
+const wallet = tx.in_msg?.source || tx.incoming_message?.source;
+const amountNano = Number(tx.in_msg?.value || tx.incoming_message?.value || 0);
 const amountTon = amountNano / 1e9;
 
 console.log("📩 Детали транзакции:", { wallet, amountTon, tx_hash });
