@@ -38,6 +38,7 @@ router.post("/check-ton", async (req, res) => {
   }
 });
 router.post("/webhook-ton", async (req, res) => {
+  console.log("📬 Вызван webhook-ton ✅", JSON.stringify(req.body, null, 2));
   try {
     const { event, transaction } = req.body;
 
