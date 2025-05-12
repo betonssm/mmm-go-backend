@@ -14,8 +14,8 @@ app.use(express.json());
 app.use('/fund', fundRoutes);
 
 // Платёжные маршруты
-const plisioRoutes = require("./routes/plisio");
-app.use("/plisio", plisioRoutes);
+const paymentRoutes = require("./routes/payments");
+app.use("/api/payments", paymentRoutes);
 
 // Игровые маршруты
 const playerRoutes = require("./routes/player");
