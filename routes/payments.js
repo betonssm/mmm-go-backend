@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+router.use(express.json());
 const Player = require("../models/Player");
 const axios = require("axios");
 
