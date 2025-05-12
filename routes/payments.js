@@ -54,6 +54,7 @@ const txDetailsRes = await axios.get(`https://tonapi.io/v2/blockchain/transactio
 });
 
 const tx = txDetailsRes.data;
+console.log("🔬 Полные данные транзакции:", JSON.stringify(tx, null, 2));
 // Унифицированный способ извлечь адрес
 const rawWallet = tx.wallet?.address || tx.incoming_message?.source;
 const normalizeAddress = (addr) => addr?.toLowerCase()?.replace(/^0:/, '');
