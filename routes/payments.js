@@ -40,41 +40,46 @@ router.post("/check-ton", async (req, res) => {
 router.post("/webhook-ton", async (req, res) => {
   console.log("📬 Вызван webhook-ton ✅", JSON.stringify(req.body, null, 2));
   try {
-    const { event, transaction } = req.body;
+    const { event_type, tx_hash } = req.body;
 
-    if (event !== "transaction_received") return res.sendStatus(200);
+if (event_type !== "account_tx" || !tx_hash) {
+  return res.sendStatus(200);
+}
 
-    const wallet = transaction?.in_msg?.source;
-    const amountNano = Number(transaction?.in_msg?.value || 0);
-    const amountTon = amountNano / 1e9;
-    console.log("📩 Новый TON-платёж:", {
-  wallet,
-  amountTon,
-  raw: JSON.stringify(transaction, null, 2),
+// 🔍 Получаем детали транзакции
+const txDetailsRes = await axios.get(`https://tonapi.io/v2/blockchain/transactions/${tx_hash}`, {
+  headers: {
+    Authorization: `Bearer ${process.env.TONAPI_TOKEN}`
+  }
 });
 
-    if (!wallet || amountTon < 1.0) {
-      return res.status(400).json({ error: "Некорректные данные" });
-    }
+const tx = txDetailsRes.data;
+const wallet = tx.incoming_message?.source;
+const amountNano = Number(tx.incoming_message?.value || 0);
+const amountTon = amountNano / 1e9;
 
-    const player = await Player.findOne({ tonWallet: wallet });
-    if (!player) {
-      console.warn("Не найден игрок с кошельком:", wallet);
-      return res.sendStatus(404);
-    }
+console.log("📩 Детали транзакции:", { wallet, amountTon, tx_hash });
 
-    // 💰 Логика начислений (временно для теста)
+if (!wallet || amountTon < 1.0) {
+  return res.status(400).json({ error: "Недостаточно данных" });
+}
+
+const player = await Player.findOne({ tonWallet: wallet });
+if (!player) {
+  console.warn("❌ Не найден игрок с кошельком:", wallet);
+  return res.sendStatus(404);
+}
+
 if (amountTon >= 1.0 && amountTon < 2.0) {
   player.isInvestor = true;
 } else if (amountTon >= 2.0) {
   player.balance += 50000;
 }
 
-    await player.save();
+await player.save();
 
-    console.log("✅ Оплата через TON получена от", wallet, "→", amountTon, "TON");
-
-    return res.sendStatus(200);
+console.log("✅ Оплата через TON обработана:", { wallet, amountTon });
+res.sendStatus(200);
   } catch (err) {
     console.error("TON Webhook Error:", err);
     res.sendStatus(500);
