@@ -54,9 +54,12 @@ const txDetailsRes = await axios.get(`https://tonapi.io/v2/blockchain/transactio
 });
 
 const tx = txDetailsRes.data;
+// Унифицированный способ извлечь адрес
+const rawWallet = tx.wallet?.address || tx.incoming_message?.source;
 const normalizeAddress = (addr) => addr?.toLowerCase()?.replace(/^0:/, '');
+const txWallet = normalizeAddress(rawWallet);
 
-const txWallet = normalizeAddress(tx.wallet?.address);
+// Сумма
 const amountNano = Number(tx.incoming_message?.value || 0);
 const amountTon = amountNano / 1e9;
 
@@ -66,6 +69,7 @@ if (!txWallet || amountTon < 1.0) {
   return res.status(400).json({ error: "Недостаточно данных" });
 }
 
+// Поиск игрока
 const player = await Player.findOne({
   tonWallet: { $regex: new RegExp(`^${txWallet}$`, 'i') }
 });
