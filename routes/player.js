@@ -346,6 +346,30 @@ router.post("/player/claim-prize", async (req, res) => {
 
   res.json({ success: true, newBalance: player.balance });
 });
+router.post("/payments/subscribe", async (req, res) => {
+  const { telegramId } = req.body;
+
+  if (!telegramId) {
+    return res.status(400).json({ error: "Missing telegramId" });
+  }
+
+  try {
+    await bot.sendInvoice(telegramId, {
+      title: "Подписка MMM GO",
+      description: "50 000 мавродиков и доступ к SR рейтингу",
+      payload: "mmmgo_premium",
+      provider_token: process.env.PROVIDER_TOKEN,
+      currency: "USD",
+      prices: [{ label: "Подписка", amount: 1000 * 100 }],
+      start_parameter: "mmmgo-premium",
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Ошибка при отправке счёта:", err);
+    res.status(500).json({ error: "Failed to send invoice" });
+  }
+});
 // POST /player/wallet — сохранение адреса TRC20 кошелька
 router.post("/wallet", async (req, res) => {
   const { telegramId, walletAddressTRC20 } = req.body;
