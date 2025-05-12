@@ -46,7 +46,7 @@ router.post("/webhook-ton", async (req, res) => {
     const amountNano = Number(transaction?.in_msg?.value || 0);
     const amountTon = amountNano / 1e9;
 
-    if (!wallet || amountTon < 1.4) {
+    if (!wallet || amountTon < 1.0) {
       return res.status(400).json({ error: "Некорректные данные" });
     }
 
@@ -56,12 +56,12 @@ router.post("/webhook-ton", async (req, res) => {
       return res.sendStatus(404);
     }
 
-    // 💰 Логика начислений
-    if (amountTon >= 1.4 && amountTon < 2.0) {
-      player.isInvestor = true;
-    } else if (amountTon >= 2.0) {
-      player.balance += 50000;
-    }
+    // 💰 Логика начислений (временно для теста)
+if (amountTon >= 1.0 && amountTon < 2.0) {
+  player.isInvestor = true;
+} else if (amountTon >= 2.0) {
+  player.balance += 50000;
+}
 
     await player.save();
 
