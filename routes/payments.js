@@ -56,15 +56,15 @@ const txDetailsRes = await axios.get(`https://tonapi.io/v2/blockchain/transactio
 const tx = txDetailsRes.data;
 console.log("🔬 Полные данные транзакции:", JSON.stringify(tx, null, 2));
 // Унифицированный способ извлечь адрес
-const rawWallet = tx.wallet?.address || tx.incoming_message?.source;
+const rawWallet = tx.in_msg?.source?.address;
 const normalizeAddress = (addr) => addr?.toLowerCase()?.replace(/^0:/, '');
 const txWallet = normalizeAddress(rawWallet);
 
-// Сумма
-const amountNano = Number(tx.incoming_message?.value || 0);
+const amountNano = Number(tx.in_msg?.value || 0);
 const amountTon = amountNano / 1e9;
 
 console.log("📩 Детали транзакции:", { txWallet, amountTon, tx_hash });
+
 
 if (!txWallet || amountTon < 1.0) {
   return res.status(400).json({ error: "Недостаточно данных" });
