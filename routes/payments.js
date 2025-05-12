@@ -36,5 +36,42 @@ router.post("/check-ton", async (req, res) => {
     res.status(500).json({ error: "Ошибка проверки оплаты" });
   }
 });
+router.post("/webhook-ton", async (req, res) => {
+  try {
+    const { event, transaction } = req.body;
+
+    if (event !== "transaction_received") return res.sendStatus(200);
+
+    const wallet = transaction?.in_msg?.source;
+    const amountNano = Number(transaction?.in_msg?.value || 0);
+    const amountTon = amountNano / 1e9;
+
+    if (!wallet || amountTon < 1.4) {
+      return res.status(400).json({ error: "Некорректные данные" });
+    }
+
+    const player = await Player.findOne({ tonWallet: wallet });
+    if (!player) {
+      console.warn("Не найден игрок с кошельком:", wallet);
+      return res.sendStatus(404);
+    }
+
+    // 💰 Логика начислений
+    if (amountTon >= 1.4 && amountTon < 2.0) {
+      player.isInvestor = true;
+    } else if (amountTon >= 2.0) {
+      player.balance += 50000;
+    }
+
+    await player.save();
+
+    console.log("✅ Оплата через TON получена от", wallet, "→", amountTon, "TON");
+
+    return res.sendStatus(200);
+  } catch (err) {
+    console.error("TON Webhook Error:", err);
+    res.sendStatus(500);
+  }
+});
 
 module.exports = router;
