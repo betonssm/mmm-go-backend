@@ -12,7 +12,7 @@ router.post("/check-ton", async (req, res) => {
   try {
     // Проверка входящих переводов (через TonAPI)
     const response = await axios.get(`https://tonapi.io/v2/blockchain/accounts/${TON_ADDRESS}/transactions?limit=10`, {
-      headers: { Authorization: `Bearer YOUR_TONAPI_TOKEN` }, // если нужен API токен
+     headers: { Authorization: `Bearer ${process.env.TONAPI_TOKEN}` }, // если нужен API токен
     });
 
     const txs = response.data.transactions || [];
