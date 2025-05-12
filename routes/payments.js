@@ -54,22 +54,26 @@ const txDetailsRes = await axios.get(`https://tonapi.io/v2/blockchain/transactio
 });
 
 const tx = txDetailsRes.data;
-const wallet = tx.in_msg?.source || tx.incoming_message?.source;
-const amountNano = Number(tx.in_msg?.value || tx.incoming_message?.value || 0);
+const normalizeAddress = (addr) => addr?.toLowerCase()?.replace(/^0:/, '');
+
+const txWallet = normalizeAddress(tx.wallet?.address);
+const amountNano = Number(tx.incoming_message?.value || 0);
 const amountTon = amountNano / 1e9;
 
-console.log("📩 Детали транзакции:", { wallet, amountTon, tx_hash });
+console.log("📩 Детали транзакции:", { txWallet, amountTon, tx_hash });
 
-if (!wallet || amountTon < 1.0) {
+if (!txWallet || amountTon < 1.0) {
   return res.status(400).json({ error: "Недостаточно данных" });
 }
 
-const player = await Player.findOne({ tonWallet: wallet });
+const player = await Player.findOne({
+  tonWallet: { $regex: new RegExp(`^${txWallet}$`, 'i') }
+});
+
 if (!player) {
-  console.warn("❌ Не найден игрок с кошельком:", wallet);
+  console.warn("❌ Не найден игрок с кошельком:", txWallet);
   return res.sendStatus(404);
 }
-
 if (amountTon >= 1.0 && amountTon < 2.0) {
   player.isInvestor = true;
 } else if (amountTon >= 2.0) {
