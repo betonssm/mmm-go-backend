@@ -45,6 +45,11 @@ router.post("/webhook-ton", async (req, res) => {
     const wallet = transaction?.in_msg?.source;
     const amountNano = Number(transaction?.in_msg?.value || 0);
     const amountTon = amountNano / 1e9;
+    console.log("📩 Новый TON-платёж:", {
+  wallet,
+  amountTon,
+  raw: JSON.stringify(transaction, null, 2),
+});
 
     if (!wallet || amountTon < 1.0) {
       return res.status(400).json({ error: "Некорректные данные" });
