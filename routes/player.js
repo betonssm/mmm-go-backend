@@ -347,7 +347,6 @@ router.post("/player/claim-prize", async (req, res) => {
   res.json({ success: true, newBalance: player.balance });
 });
 
-// POST /player/wallet — сохранение адреса TRC20 кошелька
 router.post("/wallet", async (req, res) => {
   const { telegramId, walletAddressTRC20, tonWallet } = req.body;
 
@@ -363,9 +362,11 @@ router.post("/wallet", async (req, res) => {
     updateFields.walletAddressTRC20 = walletAddressTRC20;
   }
 
-  if (tonWallet) {
-    updateFields.tonWallet = tonWallet;
-  }
+  const normalizeAddress = (addr) => addr?.toLowerCase()?.replace(/^0:/, '');
+
+if (tonWallet) {
+  updateFields.tonWallet = normalizeAddress(tonWallet);
+}
 
   try {
     const player = await Player.findOneAndUpdate(
@@ -386,6 +387,7 @@ router.post("/wallet", async (req, res) => {
   }
 });
 
+// POST /player/wallet — сохранение адреса TRC20 кошелька
 
 
 module.exports = router;
