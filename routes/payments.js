@@ -79,13 +79,20 @@ if (!player) {
   console.warn("❌ Не найден игрок с кошельком:", txWallet);
   return res.sendStatus(404);
 }
+
 if (amountTon >= 1.0 && amountTon < 2.0) {
   player.isInvestor = true;
+  player.premiumSince = new Date();
+  const expires = new Date();
+  expires.setMonth(expires.getMonth() + 1);
+  player.premiumExpires = expires;
+  console.log(`🎉 Подписка активирована до ${player.premiumExpires.toISOString()}`);
 } else if (amountTon >= 2.0) {
   player.balance += 50000;
 }
 
 await player.save();
+
 
 console.log("✅ Оплата через TON обработана:", { wallet, amountTon });
 res.sendStatus(200);
