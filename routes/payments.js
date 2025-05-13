@@ -41,13 +41,13 @@ router.post("/check-ton", async (req, res) => {
     await Player.updateOne({ telegramId }, update);
 
     // ➕ Добавляем в фонд
-    const fundDoc = await Fund.findOne();
-    if (fundDoc) {
-      const fundIncrease = Math.floor(1.4e9 * 0.6); // 60% от 1.4 TON
-      fundDoc.total += fundIncrease;
-      await fundDoc.save();
-      console.log(`💰 Фонд увеличен на ${fundIncrease} наноTON (через /check-ton)`);
-    }
+  const fundDoc = await Fund.findOne();
+if (fundDoc) {
+  fundDoc.total += 6;
+  await fundDoc.save();
+  console.log("💰 Фонд увеличен на $6 (через /check-ton)");
+}
+    
 
     return res.json({ ok: true });
   } catch (err) {
@@ -106,10 +106,9 @@ router.post("/webhook-ton", async (req, res) => {
     // ➕ Обновляем фонд
     const fundDoc = await Fund.findOne();
     if (fundDoc) {
-      const fundIncrease = Math.floor(amountNano * 0.6);
-      fundDoc.total += fundIncrease;
-      await fundDoc.save();
-      console.log(`💰 Фонд увеличен на ${fundIncrease} наноTON (webhook)`);
+      fundDoc.total += 6;
+await fundDoc.save();
+console.log("💰 Фонд увеличен на $6");
     }
 
     console.log("✅ Оплата через TON обработана:", { txWallet, amountTon });
