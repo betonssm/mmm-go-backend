@@ -70,6 +70,13 @@ router.post("/webhook-ton", async (req, res) => {
 
     const tx = txDetailsRes.data;
     console.log("🔬 Полные данные транзакции:", JSON.stringify(tx, null, 2));
+    // 🛡 Защита от некорректных транзакций без адреса отправителя
+if (!tx.in_msg || tx.in_msg.msg_type !== "int_msg" || !tx.in_msg.source?.address) {
+  console.warn("❌ Пропущена транзакция без исходящего адреса:", tx_hash);
+  return res.sendStatus(200);
+}
+
+// ✅ Извлекаем адрес кошелька
 
     const rawWallet = tx.in_msg?.source?.address;
     const normalizeAddress = (addr) => addr?.toLowerCase()?.replace(/^0:/, '');
