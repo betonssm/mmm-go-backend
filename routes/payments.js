@@ -75,6 +75,14 @@ if (!tx.in_msg || tx.in_msg.msg_type !== "int_msg" || !tx.in_msg.source?.address
   console.warn("❌ Пропущена транзакция без исходящего адреса:", tx_hash);
   return res.sendStatus(200);
 }
+// Защита от повторной обработки по tx_hash
+const alreadyHandled = await Player.findOne({ processedTxs: tx.hash });
+if (alreadyHandled) {
+  console.warn("⚠️ Транзакция уже обработана ранее:", tx.hash);
+  return res.sendStatus(200);
+}
+
+
 
 // ✅ Извлекаем адрес кошелька
 
@@ -112,6 +120,8 @@ if (!tx.in_msg || tx.in_msg.msg_type !== "int_msg" || !tx.in_msg.source?.address
       player.balance = (player.balance || 0) + 50000;
       console.log("💸 Пополнение: +50000 мавродиков");
     }
+    // Сохраняем обработанный tx_hash
+player.processedTxs = [tx.hash, ...(player.processedTxs || [])].slice(0, 20);
 
     await player.save();
 
