@@ -87,6 +87,11 @@ router.post("/webhook-ton", async (req, res) => {
       console.warn("❌ Не найден игрок с кошельком:", txWallet);
       return res.sendStatus(404);
     }
+        // ✅ Проверка на уже обработанный tx_hash
+    if (player.processedTxs?.includes(tx_hash)) {
+      console.log("🔁 Уже обработанная транзакция:", tx_hash);
+      return res.sendStatus(200);
+    }
 
     if (amountTon >= 1.0 && amountTon < 2.0) {
       player.isInvestor = true;

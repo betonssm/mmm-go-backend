@@ -70,6 +70,7 @@ const playerSchema = new mongoose.Schema({
   lastPrizeAt: { type: Date, default: null },
   walletAddressTRC20: { type: String, default: null },
   tonWallet: { type: String, default: null },
+  processedTxs: { type: [String], default: [] }
 
 }, { timestamps: true });
 
