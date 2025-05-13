@@ -202,6 +202,24 @@ router.post("/add-balance", async (req, res) => {
     return res.status(500).json({ error: "Ошибка сервера" });
   }
 });
+// PUT /api/admin/fund — обновить сумму фонда вручную
+router.put("/fund", async (req, res) => {
+  const { newTotal } = req.body;
+  if (typeof newTotal !== "number") return res.status(400).json({ error: "Неверное значение" });
+
+  try {
+    const fund = await Fund.findOne();
+    if (!fund) return res.status(404).json({ error: "Фонд не найден" });
+
+    fund.total = newTotal;
+    await fund.save();
+
+    res.json({ success: true, newTotal });
+  } catch (err) {
+    console.error("Ошибка обновления фонда:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
 
 
 module.exports = router;
