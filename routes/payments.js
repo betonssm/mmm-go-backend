@@ -86,6 +86,7 @@ if (amountTon >= 1.0 && amountTon < 2.0) {
   const expires = new Date();
   expires.setMonth(expires.getMonth() + 1);
   player.premiumExpires = expires;
+   player.balance = (player.balance || 0) + 50000;
   console.log(`🎉 Подписка активирована до ${player.premiumExpires.toISOString()}`);
 } else if (amountTon >= 2.0) {
   player.balance += 50000;
@@ -94,7 +95,7 @@ if (amountTon >= 1.0 && amountTon < 2.0) {
 await player.save();
 
 
-console.log("✅ Оплата через TON обработана:", { wallet, amountTon });
+console.log("✅ Оплата через TON обработана:", { txWallet, amountTon });
 res.sendStatus(200);
   } catch (err) {
     console.error("TON Webhook Error:", err);
