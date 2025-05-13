@@ -370,9 +370,9 @@ if (tonWallet) {
 
   try {
     const player = await Player.findOneAndUpdate(
-      { telegramId },
-      updateFields,
-      { new: true }
+  { telegramId },
+  { $set: updateFields }, // ✅ Вот так правильно
+  { new: true }
     );
 
     if (!player) {
