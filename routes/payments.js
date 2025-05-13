@@ -115,9 +115,17 @@ if (alreadyHandled) {
       expires.setMonth(expires.getMonth() + 1);
       player.premiumExpires = expires;
       player.balance = (player.balance || 0) + 50000;
+        // ✅ Увеличиваем прогресс недельной миссии
+  if (player.weeklyMission && !player.weeklyMission.completed) {
+    player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
+  }
       console.log(`🎉 Подписка активирована до ${expires.toISOString()}`);
     } else if (amountTon >= 2.0) {
       player.balance = (player.balance || 0) + 50000;
+        // ✅ Увеличиваем прогресс недельной миссии
+  if (player.weeklyMission && !player.weeklyMission.completed) {
+    player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
+  }
       console.log("💸 Пополнение: +50000 мавродиков");
     }
     // Сохраняем обработанный tx_hash
