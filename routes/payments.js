@@ -22,7 +22,7 @@ router.post("/check-ton", async (req, res) => {
     const userTx = txs.find(tx =>
       tx.incoming_message?.source?.startsWith("0:") &&
       tx.incoming_message?.value &&
-      parseFloat(tx.incoming_message.value) >= 1.4e9 // 1.4 TON в nanotons
+      parseFloat(tx.incoming_message.value) >= 1.2e9 // 1.2 TON в nanotons
     );
 
     if (!userTx) return res.status(400).json({ error: "Платёж не найден" });
@@ -32,12 +32,21 @@ router.post("/check-ton", async (req, res) => {
           $set: {
             isInvestor: true,
             premiumSince: new Date(),
-            premiumExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            premiumExpires: (() => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+    nextMonth.setHours(23, 59, 59, 999);
+    return nextMonth;
+})
           },
-          $inc: { balance: 50000 }
+          $inc: { balance: 50000, 
+           "weeklyMission.current": 50000 // ✅ добавляем прогресс миссии
+           }
         }
-      : { $inc: { balance: 50000 } };
-
+      : { $inc: { balance: 50000, 
+       "weeklyMission.current": 50000 // ✅ добавляем прогресс миссии
+       }
+};
     await Player.updateOne({ telegramId }, update);
 
     // ➕ Добавляем в фонд
@@ -112,7 +121,10 @@ if (alreadyHandled) {
       player.isInvestor = true;
       player.premiumSince = new Date();
       const expires = new Date();
-      expires.setMonth(expires.getMonth() + 1);
+      const now = new Date();
+const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+nextMonth.setHours(23, 59, 59, 999);
+player.premiumExpires = nextMonth;
       player.premiumExpires = expires;
       player.balance = (player.balance || 0) + 50000;
         // ✅ Увеличиваем прогресс недельной миссии
