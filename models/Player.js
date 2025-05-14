@@ -71,6 +71,7 @@ const playerSchema = new mongoose.Schema({
   walletAddressTRC20: { type: String, default: null },
   tonWallet: { type: String, default: null },
   processedTxs: { type: [String], default: [] }
+  mmmgoTokenBalance: { type: Number, default: 0 },
 
 }, { timestamps: true });
 
