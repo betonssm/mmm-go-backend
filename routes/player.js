@@ -386,27 +386,7 @@ if (tonWallet) {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
-router.post('/youtube-bonus', async (req, res) => {
-  const { telegramId } = req.body;
-  if (!telegramId) return res.json({ success: false, message: "Нет telegramId" });
 
-  const player = await Player.findOne({ telegramId });
-  if (!player) return res.json({ success: false, message: "Нет игрока" });
-
-  const now = new Date();
-  const last = player.youtubeBonusLast ? new Date(player.youtubeBonusLast) : null;
-  const nowDate = now.toISOString().slice(0, 10);
-  const lastDate = last ? last.toISOString().slice(0, 10) : null;
-
-  if (lastDate === nowDate) {
-    return res.json({ success: false, message: "Бонус уже получен сегодня" });
-  }
-
-  player.youtubeBonusLast = now;
-  player.balance += 1000; // или твоя логика начисления
-  await player.save();
-  res.json({ success: true });
-});
 // POST /player/wallet — сохранение адреса TRC20 кошелька
 
 
