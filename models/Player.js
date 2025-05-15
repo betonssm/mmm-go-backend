@@ -54,6 +54,7 @@ const playerSchema = new mongoose.Schema({
     dailyTaps:      { type: Number, default: 0 },
     dailyTarget:    { type: Number, default: 5000 },
     rewardReceived: { type: Boolean, default: false },
+    youtubeBonusLast: { type: Date, default: null },
   },
 
   // Еженедельные миссии

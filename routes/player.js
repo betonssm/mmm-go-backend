@@ -386,6 +386,50 @@ if (tonWallet) {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
+router.post('/youtube-bonus', async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+    if (!telegramId) return res.status(400).json({ error: 'Нет telegramId' });
+
+    const player = await Player.findOne({ telegramId });
+    if (!player) return res.status(404).json({ error: 'Игрок не найден' });
+
+    // Проверка: когда последний раз был бонус
+    const lastBonus = player.youtubeBonusLast;
+    const now = new Date();
+
+    // Разрешаем только если нет бонуса сегодня
+    let eligible = false;
+    if (!lastBonus) {
+      eligible = true;
+    } else {
+      // Проверка разницы в днях (по UTC, чтобы не было багов со временем)
+      const last = new Date(lastBonus);
+      // Проверка "разных календарных дней"
+      if (
+        last.getUTCFullYear() !== now.getUTCFullYear() ||
+        last.getUTCMonth() !== now.getUTCMonth() ||
+        last.getUTCDate() !== now.getUTCDate()
+      ) {
+        eligible = true;
+      }
+    }
+
+    if (!eligible) {
+      return res.status(200).json({ success: false, message: 'Бонус уже получен сегодня' });
+    }
+
+    // Всё ок — выдаём бонус
+    player.youtubeBonusLast = now;
+    player.balance += 1000; // 🎁 или как у тебя начисляется награда
+    await player.save();
+
+    res.json({ success: true, balance: player.balance });
+  } catch (error) {
+    console.error('Ошибка выдачи YouTube бонуса:', error);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
 
 // POST /player/wallet — сохранение адреса TRC20 кошелька
 
