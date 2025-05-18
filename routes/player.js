@@ -35,7 +35,7 @@ router.get('/sr-leaderboard', async (req, res) => {
       isInvestor: true,
       srMonth: month,
       srRating: { $gt: 0 }
-    }).sort({ srRating: -1 });
+    }).sort({ srRating: -1, premiumSince: 1 });
 
     // Для фронта отдаем только нужные данные
     res.json(players.map((p, i) => ({
