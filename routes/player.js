@@ -25,6 +25,32 @@ router.get("/count", async (req, res) => {
     res.status(500).json({ error: "Ошибка при получении количества игроков" });
   }
 });
+router.get('/sr-leaderboard', async (req, res) => {
+  try {
+    const { month } = req.query;
+    if (!month) return res.status(400).json({ error: 'month is required (например, 2024-06)' });
+
+    // Ищем всех премиум игроков с srRating > 0 и srMonth === month
+    const players = await Player.find({
+      isInvestor: true,
+      srMonth: month,
+      srRating: { $gt: 0 }
+    }).sort({ srRating: -1 });
+
+    // Для фронта отдаем только нужные данные
+    res.json(players.map((p, i) => ({
+      place: i + 1,
+      telegramId: p.telegramId,
+      playerName: p.playerName,
+      srRating: p.srRating,
+      srMonth: p.srMonth,
+      premiumSince: p.premiumSince,
+      premiumExpires: p.premiumExpires,
+    })));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // GET /player/:telegramId - получение или создание игрока
 router.get("/:telegramId", async (req, res) => {
@@ -395,33 +421,7 @@ if (tonWallet) {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
-// /sr-leaderboard?month=2024-06
-router.get('/sr-leaderboard', async (req, res) => {
-  try {
-    const { month } = req.query;
-    if (!month) return res.status(400).json({ error: 'month is required (например, 2024-06)' });
 
-    // Ищем всех премиум игроков с srRating > 0 и srMonth === month
-    const players = await Player.find({
-      isInvestor: true,
-      srMonth: month,
-      srRating: { $gt: 0 }
-    }).sort({ srRating: -1 });
-
-    // Для фронта отдаем только нужные данные
-    res.json(players.map((p, i) => ({
-      place: i + 1,
-      telegramId: p.telegramId,
-      playerName: p.playerName,
-      srRating: p.srRating,
-      srMonth: p.srMonth,
-      premiumSince: p.premiumSince,
-      premiumExpires: p.premiumExpires,
-    })));
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
 
 // POST /player/wallet — сохранение адреса TRC20 кошелька
 
