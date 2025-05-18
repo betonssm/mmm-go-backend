@@ -7,6 +7,17 @@ const Fund = require("../models/Fund");
 const axios = require("axios");
 
 const TON_ADDRESS = "UQDh-x69UU3p5DWPZ8Yz_4QMoTWwkAWYLMy6JoQSOPxLPT8A";
+function getPremiumExpireDate(dateBuy = new Date()) {
+  // dateBuy — дата покупки или текущая дата
+  let year = dateBuy.getFullYear();
+  let month = dateBuy.getMonth() + 1; // следующий месяц
+  if (month > 11) {
+    year += 1;
+    month = 0;
+  }
+  // 0-й день следующего месяца = последний день месяца
+  return new Date(year, month + 1, 0, 23, 59, 59, 999);
+}
 
 // ✅ Проверка вручную после оплаты
 router.post("/check-ton", async (req, res) => {
@@ -26,19 +37,18 @@ router.post("/check-ton", async (req, res) => {
     );
 
     if (!userTx) return res.status(400).json({ error: "Платёж не найден" });
-
-    const update = type === "premium"
-      ? {
-          $set: {
-            isInvestor: true,
-            premiumSince: new Date(),
-            premiumExpires: (() => {
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
-    nextMonth.setHours(23, 59, 59, 999);
-    return nextMonth;
-})
-          },
+    const player = await Player.findOne({ telegramId });
+let fromDate = new Date();
+if (player.premiumExpires && player.premiumExpires > new Date()) {
+  fromDate = player.premiumExpires;
+}
+const update = type === "premium"
+  ? {
+      $set: {
+        isInvestor: true,
+        premiumSince: player.premiumSince || new Date(),
+        premiumExpires: getPremiumExpireDate(fromDate)
+      },
           $inc: { balance: 50000, 
            "weeklyMission.current": 50000 // ✅ добавляем прогресс миссии
            }
@@ -118,20 +128,22 @@ if (alreadyHandled) {
     }
 
     if (amountTon >= 1.0 && amountTon < 2.0) {
-      player.isInvestor = true;
-      player.premiumSince = new Date();
-      const expires = new Date();
-      const now = new Date();
-const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
-nextMonth.setHours(23, 59, 59, 999);
-player.premiumExpires = nextMonth;
-      player.premiumExpires = expires;
+  player.isInvestor = true;
+  player.premiumSince = player.premiumSince || new Date();
+  
+  // ПРОДЛЕНИЕ от даты окончания, если подписка уже есть!
+  let fromDate = new Date();
+  if (player.premiumExpires && player.premiumExpires > new Date()) {
+    fromDate = player.premiumExpires;
+  }
+  player.premiumExpires = getPremiumExpireDate(fromDate);
+
       player.balance = (player.balance || 0) + 50000;
         // ✅ Увеличиваем прогресс недельной миссии
   if (player.weeklyMission && !player.weeklyMission.completed) {
     player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
   }
-      console.log(`🎉 Подписка активирована до ${expires.toISOString()}`);
+      console.log(`🎉 Подписка активирована до ${player.premiumExpires.toISOString()}`);
     } else if (amountTon >= 2.0) {
       player.balance = (player.balance || 0) + 50000;
         // ✅ Увеличиваем прогресс недельной миссии
