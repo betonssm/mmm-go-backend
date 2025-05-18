@@ -30,6 +30,7 @@ const playerSchema = new mongoose.Schema({
   // и сбрасываются ежемесячно
   // ---------------------------------------------
   srRating:         { type: Number, default: 0 },
+  srMonth: { type: String, default: null }, // например, "2024-06"
 
   // Количество рефералов
   referrals:        { type: Number, default: 0 },
@@ -54,7 +55,6 @@ const playerSchema = new mongoose.Schema({
     dailyTaps:      { type: Number, default: 0 },
     dailyTarget:    { type: Number, default: 5000 },
     rewardReceived: { type: Boolean, default: false },
-    youtubeBonusLast: { type: Date, default: null },
   },
 
   // Еженедельные миссии

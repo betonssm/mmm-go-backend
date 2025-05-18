@@ -254,6 +254,15 @@ if (weeklyMission?.completed) {
     if (typeof srRating !== "undefined") {
       const active = player.isInvestor && player.premiumExpires && now < player.premiumExpires && player.srActiveSince && now >= player.srActiveSince;
       updateFields.srRating = active ? srRating : 0;
+        // 👉 Записываем srMonth ТОЛЬКО если sr активен
+  if (active) {
+    const now = new Date();
+    const srMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    updateFields.srMonth = srMonth;
+  } else {
+    // Если sr не активен — очищаем srMonth
+    updateFields.srMonth = null;
+  }
     }
 
     console.log("→ [player] updateQuery will be:", {
@@ -384,6 +393,33 @@ if (tonWallet) {
   } catch (error) {
     console.error("❌ Ошибка при сохранении кошелька:", error);
     res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+// /sr-leaderboard?month=2024-06
+router.get('/sr-leaderboard', async (req, res) => {
+  try {
+    const { month } = req.query;
+    if (!month) return res.status(400).json({ error: 'month is required (например, 2024-06)' });
+
+    // Ищем всех премиум игроков с srRating > 0 и srMonth === month
+    const players = await Player.find({
+      isInvestor: true,
+      srMonth: month,
+      srRating: { $gt: 0 }
+    }).sort({ srRating: -1 });
+
+    // Для фронта отдаем только нужные данные
+    res.json(players.map((p, i) => ({
+      place: i + 1,
+      telegramId: p.telegramId,
+      playerName: p.playerName,
+      srRating: p.srRating,
+      srMonth: p.srMonth,
+      premiumSince: p.premiumSince,
+      premiumExpires: p.premiumExpires,
+    })));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
