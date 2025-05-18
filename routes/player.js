@@ -216,7 +216,26 @@ if (
       }
     }
   
-    
+    // 📊 Перерасчёт SR рейтинга
+const srActive = player.isInvestor &&
+  player.premiumExpires && now < player.premiumExpires &&
+  player.srActiveSince && now >= player.srActiveSince;
+
+if (srActive) {
+  const srRaw =
+    ((player.balance || 0) * 0.00001 +
+    (player.referrals || 0) * 2 +
+    (player.donates || 0) * 5) * 1000;
+
+  const srRating = Math.round(srRaw); // округляем и сохраняем как int
+
+  updateFields.srRating = srRating;
+  const srMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  updateFields.srMonth = srMonth;
+} else {
+  updateFields.srRating = 0;
+  updateFields.srMonth = null;
+}
     // === Начисление 10% бонуса пригласившему ===
     if (player.refSource && balanceBonus > 0) {
       const bonus = balanceBonus * 0.1;
