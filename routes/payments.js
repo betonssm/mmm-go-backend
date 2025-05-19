@@ -137,6 +137,13 @@ if (alreadyHandled) {
     fromDate = player.premiumExpires;
   }
   player.premiumExpires = getPremiumExpireDate(fromDate);
+  
+  // 📆 Устанавливаем srActiveSince — с 1 числа следующего месяца
+  const srStart = new Date();
+  srStart.setMonth(srStart.getMonth() + 1);
+  srStart.setDate(1);
+  srStart.setHours(0, 0, 0, 0);
+  player.srActiveSince = srStart;
 
       player.balance = (player.balance || 0) + 50000;
         // ✅ Увеличиваем прогресс недельной миссии
