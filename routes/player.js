@@ -222,10 +222,15 @@ const srActive = player.isInvestor &&
   player.srActiveSince && now >= player.srActiveSince;
 
 if (srActive) {
-  const srRaw =
-    ((player.balance || 0) * 0.00001 +
-    (player.referrals || 0) * 2 +
-    (player.donates || 0) * 5) * 1000;
+ const balanceDelta = Math.max(0, (player.balance || 0) - (player.srStartBalance || 0));
+const referralDelta = Math.max(0, (player.referrals || 0) - (player.srStartReferrals || 0));
+const donateDelta = Math.max(0, (player.donates || 0) - (player.srStartDonates || 0));
+
+const srRaw = (
+  balanceDelta * 0.00001 +
+  referralDelta * 2 +
+  donateDelta * 5
+) * 1000;
 
   const srRating = Math.round(srRaw); // округляем и сохраняем как int
 

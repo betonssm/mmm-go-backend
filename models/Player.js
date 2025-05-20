@@ -31,6 +31,9 @@ const playerSchema = new mongoose.Schema({
   // ---------------------------------------------
   srRating:         { type: Number, default: 0 },
   srMonth: { type: String, default: null }, // например, "2024-06"
+    srStartBalance: { type: Number, default: 0 },
+  srStartReferrals: { type: Number, default: 0 },
+  srStartDonates: { type: Number, default: 0 },
 
   // Количество рефералов
   referrals:        { type: Number, default: 0 },

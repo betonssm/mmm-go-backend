@@ -6,6 +6,8 @@ const cron = require("node-cron");
 const Player = require("./models/Player");
 const Fund = require('./models/Fund');
 const fundRoutes = require('./routes/fund');
+const internalRoutes = require('./routes/internal');
+const resetSrBaseline = require("./utils/resetSrBaseline");
 const app = express();
 
 
@@ -23,6 +25,7 @@ const playerRoutes = require("./routes/player");
 app.use("/player", playerRoutes);
 const adminRoutes = require("./routes/admin");
 app.use("/admin", adminRoutes);
+app.use("/internal", internalRoutes);
 
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -114,5 +117,14 @@ cron.schedule("10 0 1 * *", async () => {
     console.log("🔄 SR-рейтинги сброшены для инвесторов");
   } catch (err) {
     console.error("❌ Ошибка распределения ежемесячного фонда:", err);
+  }
+});
+// ✅ В отдельной CRON-задаче — Сброс baseline SR
+cron.schedule("0 3 1 * *", async () => {
+  console.log("📅 CRON: Сброс baseline SR");
+  try {
+    await resetSrBaseline();
+  } catch (err) {
+    console.error("❌ Ошибка при сбросе baseline:", err);
   }
 });
