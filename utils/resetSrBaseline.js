@@ -1,4 +1,4 @@
-/ utils/resetSrBaseline.js
+
 const Player = require("../models/Player");
 
 module.exports = async function resetSrBaseline() {
