@@ -153,13 +153,29 @@ if (alreadyHandled) {
   }
       console.log(`🎉 Подписка активирована до ${player.premiumExpires.toISOString()}`);
     } else if (Math.abs(amountTon - 1.2) < 0.1) {
-      player.balance = (player.balance || 0) + 50000;
-        // ✅ Увеличиваем прогресс недельной миссии
+  player.balance = (player.balance || 0) + 50000;
+
   if (player.weeklyMission && !player.weeklyMission.completed) {
     player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
   }
-      console.log("💸 Пополнение: +50000 мавродиков");
-    }
+
+  // ✅ Если у игрока нет активной подписки — активируем
+  if (!player.isInvestor) {
+    player.isInvestor = true;
+    player.premiumSince = new Date();
+    player.premiumExpires = getPremiumExpireDate();
+
+    const srStart = new Date();
+    srStart.setMonth(srStart.getMonth() + 1);
+    srStart.setDate(1);
+    srStart.setHours(0, 0, 0, 0);
+    player.srActiveSince = srStart;
+
+    console.log("🎫 Подписка также активирована при пополнении!");
+  }
+
+  console.log("💸 Пополнение: +50000 мавродиков");
+}
     // Сохраняем обработанный tx_hash
 player.processedTxs = [tx.hash, ...(player.processedTxs || [])].slice(0, 20);
 
