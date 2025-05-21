@@ -33,7 +33,8 @@ router.post("/check-ton", async (req, res) => {
     const userTx = txs.find(tx =>
       tx.incoming_message?.source?.startsWith("0:") &&
       tx.incoming_message?.value &&
-      parseFloat(tx.incoming_message.value) >= 1.2e9 // 1.2 TON в nanotons
+    Math.abs(parseFloat(tx.incoming_message.value) - 1e9) < 1e8 ||  // ≈ 1.0 TON
+    Math.abs(parseFloat(tx.incoming_message.value) - 1.2e9) < 1e8  // ≈ 1.2 TON
     );
 
     if (!userTx) return res.status(400).json({ error: "Платёж не найден" });
