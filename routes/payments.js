@@ -127,7 +127,7 @@ if (alreadyHandled) {
       return res.sendStatus(200);
     }
 
-    if (amountTon >= 1.0 && amountTon < 2.0) {
+    if (Math.abs(amountTon - 1.0) < 0.1) {
   player.isInvestor = true;
   player.premiumSince = player.premiumSince || new Date();
   
@@ -151,7 +151,7 @@ if (alreadyHandled) {
     player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
   }
       console.log(`🎉 Подписка активирована до ${player.premiumExpires.toISOString()}`);
-    } else if (amountTon >= 2.0) {
+    } else if (Math.abs(amountTon - 1.2) < 0.1) {
       player.balance = (player.balance || 0) + 50000;
         // ✅ Увеличиваем прогресс недельной миссии
   if (player.weeklyMission && !player.weeklyMission.completed) {
