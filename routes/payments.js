@@ -173,7 +173,7 @@ console.log("💰 Фонд увеличен на $6");
     }
 
     console.log("✅ Оплата через TON обработана:", { txWallet, amountTon });
-    res.sendStatus(200);
+    res.json({ ok: true });
   } catch (err) {
     console.error("TON Webhook Error:", err);
     res.sendStatus(500);
