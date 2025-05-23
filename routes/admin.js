@@ -5,6 +5,15 @@ const Fund = require("../models/Fund");
 const authMiddleware = require("../middleware/checkAdmin");
 const Log = require("../models/Log");
 const Config = require("../models/Config");
+function getPremiumExpireDate(dateBuy = new Date()) {
+  let year = dateBuy.getFullYear();
+  let month = dateBuy.getMonth() + 1;
+  if (month > 11) {
+    year += 1;
+    month = 0;
+  }
+  return new Date(year, month + 1, 0, 23, 59, 59, 999);
+}
 // 🔒 Применяем защиту ко всем admin-маршрутам
 router.use(authMiddleware);
 
@@ -217,6 +226,37 @@ router.put("/fund", async (req, res) => {
     res.json({ success: true, newTotal });
   } catch (err) {
     console.error("Ошибка обновления фонда:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+router.post("/admin/give-subscription", checkAdmin, async (req, res) => {
+  const { telegramId } = req.body;
+  if (!telegramId) return res.status(400).json({ error: "Не указан telegramId" });
+
+  try {
+    const player = await Player.findOne({ telegramId });
+    if (!player) return res.status(404).json({ error: "Игрок не найден" });
+
+    let fromDate = new Date();
+    if (player.premiumExpires && player.premiumExpires > new Date()) {
+      fromDate = player.premiumExpires;
+    }
+
+    player.isInvestor = true;
+    player.premiumSince = player.premiumSince || new Date();
+    player.premiumExpires = getPremiumExpireDate(fromDate);
+
+    const srStart = new Date();
+    srStart.setMonth(srStart.getMonth() + 1);
+    srStart.setDate(1);
+    srStart.setHours(0, 0, 0, 0);
+    player.srActiveSince = srStart;
+
+    await player.save();
+
+    res.json({ ok: true, message: "Подписка успешно выдана" });
+  } catch (err) {
+    console.error("Ошибка выдачи подписки вручную:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
