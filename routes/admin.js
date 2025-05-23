@@ -229,7 +229,7 @@ router.put("/fund", async (req, res) => {
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
-router.post("/admin/give-subscription", checkAdmin, async (req, res) => {
+router.post("/admin/give-subscription", async (req, res) => {
   const { telegramId } = req.body;
   if (!telegramId) return res.status(400).json({ error: "Не указан telegramId" });
 
