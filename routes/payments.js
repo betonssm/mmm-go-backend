@@ -147,6 +147,7 @@ if (alreadyHandled) {
   player.srActiveSince = srStart;
 
       player.balance = (player.balance || 0) + 50000;
+      player.donatesCount = (player.donatesCount || 0) + 1;
         // ✅ Увеличиваем прогресс недельной миссии
   if (player.weeklyMission && !player.weeklyMission.completed) {
     player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
@@ -154,6 +155,7 @@ if (alreadyHandled) {
       console.log(`🎉 Подписка активирована до ${player.premiumExpires.toISOString()}`);
     } else if (Math.abs(amountTon - 1.2) < 0.1) {
   player.balance = (player.balance || 0) + 50000;
+  player.donatesCount = (player.donatesCount || 0) + 1;
 
   if (player.weeklyMission && !player.weeklyMission.completed) {
     player.weeklyMission.current = (player.weeklyMission.current || 0) + 50000;
