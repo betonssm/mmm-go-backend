@@ -148,7 +148,7 @@ router.get('/sr-stats', async (req, res) => {
         telegramId: player.telegramId,
         playerName: player.playerName,
         srRating: player.srRating,
-        walletAddressTRC20: player.walletAddressTRC20 || null,
+        tonWallet: player.tonWallet || null,
         group,
         usdtPayout: Number(payoutPerUser.toFixed(2))
       }));
@@ -252,11 +252,31 @@ router.post("/give-subscription", async (req, res) => {
     srStart.setHours(0, 0, 0, 0);
     player.srActiveSince = srStart;
 
+    // ✅ Сброс миссии и даты получения недельной награды
+    player.weeklyMission = {
+      mavrodikGoal: 100000,
+      current: 0,
+      completed: false,
+    };
+    player.lastWeeklyRewardAt = null;
+
     await player.save();
 
-    res.json({ ok: true, message: "Подписка успешно выдана" });
+    res.json({ ok: true, message: "Подписка успешно выдана вручную и миссии сброшены" });
   } catch (err) {
     console.error("Ошибка выдачи подписки вручную:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+// Подозрительные аккаунты (больше 50 000 тапов за день)
+router.get("/suspicious-taps", async (req, res) => {
+  try {
+    const suspiciousPlayers = await Player.find({ "dailyTasks.dailyTaps": { $gt: 50000 } })
+      .select("telegramId playerName dailyTasks balance level");
+
+    res.json({ players: suspiciousPlayers });
+  } catch (err) {
+    console.error("Ошибка при получении подозрительных аккаунтов:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
